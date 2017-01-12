@@ -1,0 +1,2 @@
+#Primary entry point for the auth microservice
+->          /auth          app.Routes
