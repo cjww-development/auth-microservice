@@ -15,3 +15,17 @@ sbt run
 
 This will start the application on port **8601**
 
+| Path                                                                               | Supported Methods | Description  |
+| ---------------------------------------------------------------------------------- | ------------------| ------------ |
+|```/auth/create-new-user```                                                |       POST        | creates a new user account |
+
+###POST &nbsp;&nbsp;&nbsp;&nbsp; /auth/create-new-user
+
+    Responds with:
+
+| Status        |Code                   |
+|:--------------|-----------------------|
+| 201           | Created               |
+| 400           | Bad request           |
+| 403           | Forbidden             |
+| 500           | Internal server error |
