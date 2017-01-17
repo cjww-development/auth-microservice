@@ -53,6 +53,16 @@ class ValidationServiceSpec extends CJWWSpec {
         status(result) mustBe CONFLICT
       }
     }
+
+    "return an internal server error" when {
+      "something unexpected is returned from verifyUserName" in new Setup {
+        when(mockRepo.verifyUserName(Matchers.eq("testUserName")))
+          .thenReturn(Future.successful(EmailInUse))
+
+        val result = TestService.isUserNameInUse("testUserName")
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+    }
   }
 
   "isEmailInUse" should {
@@ -73,6 +83,16 @@ class ValidationServiceSpec extends CJWWSpec {
 
         val result = TestService.isEmailInUse("test@email.com")
         status(result) mustBe CONFLICT
+      }
+    }
+
+    "return an internal server error" when {
+      "something unexpected is returned from verifyEmail" in new Setup {
+        when(mockRepo.verifyEmail(Matchers.eq("test@email.com")))
+          .thenReturn(Future.successful(UserNameInUse))
+
+        val result = TestService.isEmailInUse("test@email.com")
+        status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
   }

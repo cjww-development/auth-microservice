@@ -33,6 +33,7 @@ trait ValidationService {
     regRepo.verifyUserName(username) map {
       case UserNameNotInUse => Ok
       case UserNameInUse => Conflict
+      case _ => InternalServerError
     }
   }
 
@@ -40,6 +41,7 @@ trait ValidationService {
     regRepo.verifyEmail(email) map {
       case EmailNotInUse => Ok
       case EmailInUse => Conflict
+      case _ => InternalServerError
     }
   }
 }
