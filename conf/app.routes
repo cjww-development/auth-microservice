@@ -3,3 +3,6 @@
 # ~~~~
 
 POST        /create-new-user                        controllers.RegistrationController.createNewUser
+
+GET         /validate-user-name/:username           controllers.ValidationController.validateUserName(username : String)
+GET         /validate-email/:email                  controllers.ValidationController.validateEmail(email : String)
