@@ -15,16 +15,11 @@
 // limitations under the License.
 package config
 
-import reactivemongo.api.{DefaultDB, MongoConnection, MongoDriver}
-import reactivemongo.play.json.collection.JSONCollection
-
-import scala.concurrent.Future
-
 sealed trait MongoResponse
 case object MongoSuccessCreate extends MongoResponse
 case object MongoFailedCreate extends MongoResponse
 
-case class MongoSuccessRead[T](data : T) extends MongoResponse
+case class MongoSuccessRead(data : Any) extends MongoResponse
 case object MongoFailedRead extends MongoResponse
 
 case object MongoSuccessUpdate extends MongoResponse
@@ -32,11 +27,3 @@ case object MongoFailedUpdate extends MongoResponse
 
 case object MongoSuccessDelete extends MongoResponse
 case object MongoFailedDelete extends MongoResponse
-
-trait MongoConfiguration extends ConfigurationStrings {
-  val driver : MongoDriver
-  val connection : MongoConnection
-  val database : Future[DefaultDB]
-
-  def collection(name : String) : Future[JSONCollection]
-}

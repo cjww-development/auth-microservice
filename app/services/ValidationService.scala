@@ -15,6 +15,7 @@
 // limitations under the License.
 package services
 
+import com.google.inject.{Inject, Singleton}
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import repositories._
@@ -22,12 +23,8 @@ import repositories._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object ValidationService extends ValidationService {
-  val regRepo = RegistrationRepository
-}
-
-trait ValidationService {
-  val regRepo : RegistrationRepository
+@Singleton
+class ValidationService @Inject()(regRepo : RegistrationRepository) {
 
   def isUserNameInUse(username : String) : Future[Result] = {
     regRepo.verifyUserName(username) map {

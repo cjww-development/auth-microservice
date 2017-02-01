@@ -13,27 +13,34 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package services
+package repositories
 
 import com.google.inject.{Inject, Singleton}
-import config.{MongoFailedCreate, MongoSuccessCreate}
-import models.UserAccount
-import play.api.mvc.Result
-import play.api.mvc.Results._
-import repositories.RegistrationRepository
+import config.{MongoCollections, MongoFailedRead, MongoResponse, MongoSuccessRead}
+import connectors.MongoConnector
+import models.{AuthContext, Login, UserAccount}
+import reactivemongo.bson.BSONDocument
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class RegistrationService @Inject()(regRepo : RegistrationRepository) {
+class LoginRepository @Inject()(mongoConnector: MongoConnector) extends MongoCollections {
 
-  def createNewUser(newUser : UserAccount) : Future[Result] = {
-    val user = UserAccount.newUser(newUser)
-    regRepo.insertNewUser(user) map {
-      case MongoSuccessCreate => Created
-      case MongoFailedCreate => InternalServerError
+  def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
+    val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
+    mongoConnector.read[UserAccount](USER_ACCOUNTS, query) map {
+      case MongoFailedRead => None
+      case MongoSuccessRead(acc) => Some(acc.asInstanceOf[UserAccount])
       case _ => throw new IllegalStateException
     }
+  }
+
+  def cacheContext(context: AuthContext) : Future[MongoResponse] = {
+    mongoConnector.create[AuthContext](AUTH, context)
+  }
+
+  def fetchContext(id : String) : Future[MongoResponse] = {
+    mongoConnector.read[AuthContext](AUTH, BSONDocument("_id" -> id))
   }
 }

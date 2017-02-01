@@ -28,9 +28,7 @@ class ValidationServiceSpec extends CJWWSpec {
   val mockRepo = mock[RegistrationRepository]
 
   class Setup {
-    object TestService extends ValidationService {
-      val regRepo = mockRepo
-    }
+    val testService = new ValidationService(mockRepo)
   }
 
   "isUserNameInUse" should {
@@ -39,7 +37,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyUserName(Matchers.eq("testUserName")))
           .thenReturn(Future.successful(UserNameNotInUse))
 
-        val result = TestService.isUserNameInUse("testUserName")
+        val result = testService.isUserNameInUse("testUserName")
         status(result) mustBe OK
       }
     }
@@ -49,7 +47,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyUserName(Matchers.eq("testUserName")))
           .thenReturn(Future.successful(UserNameInUse))
 
-        val result = TestService.isUserNameInUse("testUserName")
+        val result = testService.isUserNameInUse("testUserName")
         status(result) mustBe CONFLICT
       }
     }
@@ -59,7 +57,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyUserName(Matchers.eq("testUserName")))
           .thenReturn(Future.successful(EmailInUse))
 
-        val result = TestService.isUserNameInUse("testUserName")
+        val result = testService.isUserNameInUse("testUserName")
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -71,7 +69,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyEmail(Matchers.eq("test@email.com")))
           .thenReturn(Future.successful(EmailNotInUse))
 
-        val result = TestService.isEmailInUse("test@email.com")
+        val result = testService.isEmailInUse("test@email.com")
         status(result) mustBe OK
       }
     }
@@ -81,7 +79,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyEmail(Matchers.eq("test@email.com")))
           .thenReturn(Future.successful(EmailInUse))
 
-        val result = TestService.isEmailInUse("test@email.com")
+        val result = testService.isEmailInUse("test@email.com")
         status(result) mustBe CONFLICT
       }
     }
@@ -91,7 +89,7 @@ class ValidationServiceSpec extends CJWWSpec {
         when(mockRepo.verifyEmail(Matchers.eq("test@email.com")))
           .thenReturn(Future.successful(UserNameInUse))
 
-        val result = TestService.isEmailInUse("test@email.com")
+        val result = testService.isEmailInUse("test@email.com")
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }

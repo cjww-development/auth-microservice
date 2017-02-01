@@ -15,6 +15,7 @@
 // limitations under the License.
 package controllers
 
+import com.google.inject.{Inject, Singleton}
 import models.UserAccount
 import play.api.mvc.Action
 import services.RegistrationService
@@ -22,13 +23,8 @@ import utils.application.{Authorised, BackendController, NotAuthorised}
 
 import scala.concurrent.Future
 
-class RegistrationController extends RegistrationCtrl{
-  val registrationService = RegistrationService
-}
-
-trait RegistrationCtrl extends BackendController {
-
-  val registrationService : RegistrationService
+@Singleton
+class RegistrationController @Inject()(registrationService : RegistrationService) extends BackendController {
 
   def createNewUser : Action[String] = Action.async(parse.text) {
     implicit request =>

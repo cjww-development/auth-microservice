@@ -13,21 +13,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package services
+package models
 
-import java.util.UUID
+import play.api.libs.json.Json
 
-object IdService extends IdService
+case class Login(username : String, password : String)
 
-trait IdService {
-
-  def generateUserId : String = s"user-${UUID.randomUUID()}"
-
-  def generateHubId : String = s"hub-${UUID.randomUUID()}"
-
-  def generateDiagnosticsId : String = s"diag-${UUID.randomUUID()}"
-
-  def generateDeversityId : String = s"deversity-${UUID.randomUUID()}"
-
-  def generateContextId : String = s"context-${UUID.randomUUID()}"
+object Login {
+  implicit val format = Json.format[Login]
 }

@@ -16,9 +16,10 @@
 package utils.security
 
 import config.ConfigurationStrings
+import helpers.CJWWSpec
 import org.scalatestplus.play.PlaySpec
 
-class EncryptionSpec extends PlaySpec {
+class EncryptionSpec extends CJWWSpec {
 
   class Setup {
     object TestSec extends Encryption

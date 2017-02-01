@@ -15,6 +15,7 @@
 // limitations under the License.
 package repositories
 
+import com.google.inject.{Inject, Singleton}
 import config.{MongoCollections, MongoFailedRead, MongoResponse, MongoSuccessRead}
 import connectors.MongoConnector
 import models.UserAccount
@@ -31,13 +32,8 @@ case object UserNameNotInUse extends Use
 case object EmailInUse extends Use
 case object EmailNotInUse extends Use
 
-object RegistrationRepository extends RegistrationRepository {
-  val mongoConnector = MongoConnector
-}
-
-trait RegistrationRepository extends MongoCollections{
-
-  val mongoConnector : MongoConnector
+@Singleton
+class RegistrationRepository @Inject()(mongoConnector : MongoConnector) extends MongoCollections{
 
   def insertNewUser(user : UserAccount) : Future[MongoResponse] = {
     mongoConnector.create[UserAccount](USER_ACCOUNTS, user)
@@ -45,7 +41,7 @@ trait RegistrationRepository extends MongoCollections{
 
   def verifyUserName(username : String) : Future[Use] = {
     mongoConnector.read[UserAccount](USER_ACCOUNTS, BSONDocument("userName" -> username)) map {
-      case MongoSuccessRead(account)  => Logger.info(s"[RegistrationRepository] - [verifyUserName] : This user name is already in use on this system")
+      case MongoSuccessRead(_)  => Logger.info(s"[RegistrationRepository] - [verifyUserName] : This user name is already in use on this system")
         UserNameInUse
       case MongoFailedRead            => UserNameNotInUse
       case _ => throw new IllegalStateException
@@ -54,7 +50,7 @@ trait RegistrationRepository extends MongoCollections{
 
   def verifyEmail(email : String) : Future[Use] = {
     mongoConnector.read[UserAccount](USER_ACCOUNTS, BSONDocument("email" -> email)) map {
-      case MongoSuccessRead(account) => Logger.info(s"[RegistrationRepository] - [verifyEmail] : This email address is already in use on this system")
+      case MongoSuccessRead(_) => Logger.info(s"[RegistrationRepository] - [verifyEmail] : This email address is already in use on this system")
         EmailInUse
       case MongoFailedRead => EmailNotInUse
       case _ => throw new IllegalStateException

@@ -47,16 +47,7 @@ class RegistrationControllerSpec extends CJWWSpec {
   val encryptedUser = DataSecurity.encryptData[UserAccount](user).get
 
   class Setup {
-    object TestController extends RegistrationCtrl {
-      val registrationService = mockRegistrationService
-    }
-  }
-
-  "RegistrationController" should {
-    "use the correct service" in {
-      val controller = new RegistrationController
-      controller.registrationService mustBe RegistrationService
-    }
+    val testController = new RegistrationController(mockRegistrationService)
   }
 
   "createNewUser" should {
@@ -70,7 +61,7 @@ class RegistrationControllerSpec extends CJWWSpec {
       when(mockRegistrationService.createNewUser(Matchers.eq(user)))
         .thenReturn(Future.successful(Created))
 
-      val result = TestController.createNewUser()(request)
+      val result = testController.createNewUser()(request)
       status(result) mustBe CREATED
     }
 
@@ -86,7 +77,7 @@ class RegistrationControllerSpec extends CJWWSpec {
       when(mockRegistrationService.createNewUser(Matchers.eq(user)))
         .thenReturn(Future.successful(InternalServerError))
 
-      val result = TestController.createNewUser()(request)
+      val result = testController.createNewUser()(request)
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
   }

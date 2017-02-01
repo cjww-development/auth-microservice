@@ -34,16 +34,7 @@ class ValidationControllerSpec extends CJWWSpec {
   val testEncEmail = DataSecurity.encryptData[String]("test@email.com").get
 
   class Setup {
-    object TestController extends ValidationCtrl {
-      val validationService = mockValidationService
-    }
-  }
-
-  "ValidationController" should {
-    "use the correct service" in {
-      val controller = new ValidationController
-      controller.validationService mustBe ValidationService
-    }
+    val testController = new ValidationController(mockValidationService)
   }
 
   "validateUserName" should {
@@ -53,7 +44,7 @@ class ValidationControllerSpec extends CJWWSpec {
       when(mockValidationService.isUserNameInUse(Matchers.eq("testUserName")))
         .thenReturn(Future.successful(Ok))
 
-      val result = TestController.validateUserName(testEncUserName)(request)
+      val result = testController.validateUserName(testEncUserName)(request)
       status(result) mustBe OK
     }
 
@@ -63,21 +54,21 @@ class ValidationControllerSpec extends CJWWSpec {
       when(mockValidationService.isUserNameInUse(Matchers.eq("testUserName")))
         .thenReturn(Future.successful(Conflict))
 
-      val result = TestController.validateUserName(testEncUserName)(request)
+      val result = testController.validateUserName(testEncUserName)(request)
       status(result) mustBe CONFLICT
     }
 
     "return an BAD REQUEST" in new Setup {
       val request = FakeRequest().withHeaders("appID" -> AUTH_ID)
 
-      val result = TestController.validateUserName("INVALID_STRING")(request)
+      val result = testController.validateUserName("INVALID_STRING")(request)
       status(result) mustBe BAD_REQUEST
     }
 
     "return a FORBIDDEN" in new Setup {
       val request = FakeRequest()
 
-      val result = TestController.validateUserName(testEncUserName)(request)
+      val result = testController.validateUserName(testEncUserName)(request)
       status(result) mustBe FORBIDDEN
     }
   }
@@ -89,7 +80,7 @@ class ValidationControllerSpec extends CJWWSpec {
       when(mockValidationService.isEmailInUse(Matchers.eq("test@email.com")))
         .thenReturn(Future.successful(Ok))
 
-      val result = TestController.validateEmail(testEncEmail)(request)
+      val result = testController.validateEmail(testEncEmail)(request)
       status(result) mustBe OK
     }
 
@@ -99,21 +90,21 @@ class ValidationControllerSpec extends CJWWSpec {
       when(mockValidationService.isEmailInUse(Matchers.eq("test@email.com")))
         .thenReturn(Future.successful(Conflict))
 
-      val result = TestController.validateEmail(testEncEmail)(request)
+      val result = testController.validateEmail(testEncEmail)(request)
       status(result) mustBe CONFLICT
     }
 
     "return an BAD REQUEST" in new Setup {
       val request = FakeRequest().withHeaders("appID" -> AUTH_ID)
 
-      val result = TestController.validateEmail("INVALID_STRING")(request)
+      val result = testController.validateEmail("INVALID_STRING")(request)
       status(result) mustBe BAD_REQUEST
     }
 
     "return a FORBIDDEN" in new Setup {
       val request = FakeRequest()
 
-      val result = TestController.validateEmail(testEncUserName)(request)
+      val result = testController.validateEmail(testEncUserName)(request)
       status(result) mustBe FORBIDDEN
     }
   }

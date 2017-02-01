@@ -16,7 +16,8 @@
 package utils.security
 
 import helpers.CJWWSpec
-import models.UserAccount
+import models.{Login, UserAccount}
+import play.api.libs.json.{JsValue, Json}
 
 class DataSecuritySpec extends CJWWSpec {
 
@@ -33,6 +34,16 @@ class DataSecuritySpec extends CJWWSpec {
       None
     )
 
+  val testLogin =
+    """
+      |{
+      |   "username" : "CJWalks",
+      |   "password" : "bb9a6f1eaa9b8407e3e03066156e1d9edbeec3efe54a062f29dad8b5ad802a5ea8d03ea7a18954b211d28ed30e6f4358c116c4579128683faa7358a2678d7eec"
+      |}
+    """.stripMargin
+
+  val login = Login("CJWalks", "bb9a6f1eaa9b8407e3e03066156e1d9edbeec3efe54a062f29dad8b5ad802a5ea8d03ea7a18954b211d28ed30e6f4358c116c4579128683faa7358a2678d7eec")
+
   class Setup {
     object TestSec extends DataSecurity
   }
@@ -41,6 +52,13 @@ class DataSecuritySpec extends CJWWSpec {
     "scramble the data, i.e not match what was put in" in new Setup {
       val result = DataSecurity.encryptData[UserAccount](user)
       result.get.getClass mustBe classOf[String]
+    }
+
+    "print the test data" in new Setup {
+      val result = DataSecurity.encryptData[Login](login)
+      val backAgain = DataSecurity.decryptInto[Login](result.get)
+
+      backAgain.get mustBe login
     }
   }
 }

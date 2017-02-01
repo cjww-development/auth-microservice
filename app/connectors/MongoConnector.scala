@@ -13,12 +13,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package connectors
 
+import com.google.inject.{Inject, Singleton}
 import config._
 import play.api.Logger
 import play.api.libs.json.OFormat
-import reactivemongo.api.{MongoConnection, MongoDriver}
+import reactivemongo.api.MongoConnection.ParsedURI
+import reactivemongo.api.{DefaultDB, MongoConnection, MongoDriver}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection.JSONCollection
@@ -26,61 +29,49 @@ import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
+@Singleton
+class MongoConnector @Inject()() extends ConfigurationStrings {
 
-object MongoConnector extends MongoConnector {
-  // $COVERAGE-OFF$
-  val driver = new MongoDriver
-  val mongoUri = MongoConnection.parseURI(s"$databaseUri").get
-  val connection = driver.connection(mongoUri)
-  val database = connection.database(mongoUri.db.get)
-
-  def collection(name : String) : Future[JSONCollection] = {
-    database map {
-      _.collection(name)
-    }
+  val driver = new MongoDriver()
+  val mongoUri : ParsedURI = MongoConnection.parseURI(databaseUri).get
+  val connection: MongoConnection = driver.connection(mongoUri)
+  val database: Future[DefaultDB] = connection.database(mongoUri.db.get)
+  def collection(collectionName : String) : Future[JSONCollection] = database map {
+    _.collection(collectionName)
   }
-  // $COVERAGE-ON$
-}
-
-trait MongoConnector extends MongoConfiguration {
 
   def create[T](collectionName : String, data : T)(implicit format : OFormat[T]) : Future[MongoResponse] = {
     collection(collectionName) flatMap {
       _.insert[T](data) map { res =>
-        // $COVERAGE-OFF$
-        if(res.hasErrors) Logger.error(s"[MongoConnector] - [create] : Inserting document of type ${data.getClass} FAILED reason : ${res.errmsg.get}")
-        // $COVERAGE-ON$
-        res.ok match {
-          case false  => MongoFailedCreate
-          case true   => MongoSuccessCreate
+        if(res.ok) {
+          MongoSuccessCreate
+        } else {
+          Logger.error(s"[MongoConnector] - [create] : Inserting document of type ${data.getClass} FAILED reason : ${res.errmsg.get}")
+          MongoFailedCreate
         }
       }
     }
   }
 
-  // $COVERAGE-OFF$
   def read[T](collectionName : String, query : BSONDocument)(implicit format : OFormat[T]) : Future[MongoResponse] = {
     collection(collectionName) flatMap {
-      _.find[BSONDocument](query).one[T] map { res =>
-        if(res.isEmpty) Logger.info(s"[MongoConnector] - [read] : Query returned no results")
-        res match {
-          case Some(data) => MongoSuccessRead[T](data)
-          case None       => MongoFailedRead
-        }
+      _.find[BSONDocument](query).one[T] map {
+        case Some(data) => MongoSuccessRead(data)
+        case None =>
+          Logger.info(s"[MongoConnector] - [read] : Query returned no results")
+          MongoFailedRead
       }
     }
   }
-  // $COVERAGE-ON$
 
   def update(collectionName : String, selectedData : BSONDocument, data : BSONDocument) : Future[MongoResponse] = {
     collection(collectionName) flatMap {
       _.update(selectedData, data) map { res =>
-        // $COVERAGE-OFF$
-        if(res.hasErrors) Logger.error(s"[MongoConnector] - [update] : Updating a document in $collectionName FAILED reason : ${res.errmsg.get}")
-        // $COVERAGE-ON$
-        res.ok match {
-          case true   => MongoSuccessUpdate
-          case false  => MongoFailedUpdate
+        if(res.ok) {
+          MongoSuccessUpdate
+        } else {
+          Logger.error(s"[MongoConnector] - [update] : Updating a document in $collectionName FAILED reason : ${res.errmsg.get}")
+          MongoFailedUpdate
         }
       }
     }
@@ -89,12 +80,11 @@ trait MongoConnector extends MongoConfiguration {
   def delete[T](collectionName : String, query : BSONDocument) : Future[MongoResponse] = {
     collection(collectionName) flatMap {
       _.remove(query) map { res =>
-        // $COVERAGE-OFF$
-        if(res.hasErrors) Logger.error(s"[MongoConnector] - [delete] : Deleting a document from $collectionName FAILED reason : ${res.errmsg.get}")
-        // $COVERAGE-ON$
-        res.ok match {
-          case true   => MongoSuccessDelete
-          case false  => MongoFailedDelete
+        if(res.ok) {
+          MongoSuccessDelete
+        } else {
+          Logger.error(s"[MongoConnector] - [delete] : Deleting a document from $collectionName FAILED reason : ${res.errmsg.get}")
+          MongoFailedDelete
         }
       }
     }

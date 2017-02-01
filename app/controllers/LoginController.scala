@@ -16,36 +16,36 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
+import models.Login
+import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
-import services.ValidationService
+import services.LoginService
 import utils.application.{Authorised, BackendController, NotAuthorised}
 import utils.security.DataSecurity
 
 import scala.concurrent.Future
 
 @Singleton
-class ValidationController @Inject()(validationService : ValidationService) extends BackendController {
+class LoginController @Inject()(loginService : LoginService) extends BackendController {
 
-  def validateUserName(username : String) : Action[AnyContent] = Action.async {
+  def login(enc : String) : Action[AnyContent] = Action.async {
     implicit request =>
       openActionVerification {
         case Authorised =>
-         DataSecurity.decryptInto[String](username) match {
-           case Some(decrypted) => validationService.isUserNameInUse(decrypted)
-           case None => Future.successful(BadRequest)
-         }
+          DataSecurity.decryptInto[Login](enc.replace(" ","+")) match {
+            case Some(credentials) =>
+              loginService.login(credentials)
+            case None => Future.successful(Forbidden)
+          }
         case NotAuthorised => Future.successful(Forbidden)
       }
   }
 
-  def validateEmail(email : String) : Action[AnyContent] = Action.async {
+  def getContext(contextId : String) : Action[AnyContent] = Action.async {
     implicit request =>
+      Logger.debug(s"ENC : $contextId")
       openActionVerification {
-        case Authorised =>
-          DataSecurity.decryptInto[String](email) match {
-            case Some(decrypted) => validationService.isEmailInUse(decrypted)
-            case None => Future.successful(BadRequest)
-          }
+        case Authorised => loginService.getContext(contextId)
         case NotAuthorised => Future.successful(Forbidden)
       }
   }

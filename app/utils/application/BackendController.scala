@@ -30,7 +30,8 @@ case object Authorised extends AuthorisationResponse
 
 trait BackendController extends Controller with ConfigurationStrings {
 
-  protected def decryptRequest[T](f : T => Future[Result])(implicit request : Request[String], manifest: Manifest[T], reads : Reads[T], format : Format[T]) = {
+  protected def decryptRequest[T]
+  (f : T => Future[Result])(implicit request : Request[String], manifest: Manifest[T], reads : Reads[T], format : Format[T]): Future[Result] = {
     Try(DataSecurity.decryptInto[T](request.body)) match {
       case Success(Some(data)) =>
         Logger.info("[BackendController] - [decryptRequest] : Request decryption successful")
@@ -43,7 +44,7 @@ trait BackendController extends Controller with ConfigurationStrings {
     }
   }
 
-  protected def openActionVerification(f : AuthorisationResponse => Future[Result])(implicit request : Request[_]) = {
+  protected def openActionVerification(f : AuthorisationResponse => Future[Result])(implicit request : Request[_]): Future[Result] = {
     f(checkAuth(request.headers.get("appID")))
   }
 

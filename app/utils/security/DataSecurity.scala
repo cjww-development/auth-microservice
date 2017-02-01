@@ -34,6 +34,7 @@ trait DataSecurity extends DataCommon {
 
   def encryptData[T](data : T)(implicit format: Format[T]) : Option[String] = {
     def scramble(json : JsValue) : Option[String] = {
+      Logger.debug("JSON: " + json)
       val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
       cipher.init(Cipher.ENCRYPT_MODE, keyToSpec)
       Some(Base64.encodeBase64String(cipher.doFinal(json.toString.getBytes("UTF-8"))))
@@ -51,7 +52,7 @@ trait DataSecurity extends DataCommon {
         val unlocked = new String(attempt.get)
         validate[T](unlocked)
       case false =>
-        Logger.error(s"[JsonSecurity] - [decryptInto] : Failed decryption, return None")
+        Logger.error(s"[JsonSecurity] - [decryptInto] : Failed decryption")
         None
     }
   }

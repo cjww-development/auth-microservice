@@ -34,9 +34,7 @@ class RegistrationServiceSpec extends PlaySpec with MockitoSugar {
   val user = UserAccount(None, "testFirstName", "testLastName", "testUserName", "test@email.com", "testPass", None, None, None)
 
   class Setup {
-    object TestService extends RegistrationService {
-      val regRepo = mockRepo
-    }
+    val testService = new RegistrationService(mockRepo)
   }
 
   "createNewUser" should {
@@ -45,7 +43,7 @@ class RegistrationServiceSpec extends PlaySpec with MockitoSugar {
         when(mockRepo.insertNewUser(Matchers.any[UserAccount]()))
           .thenReturn(Future.successful(MongoSuccessCreate))
 
-        val result = TestService.createNewUser(user)
+        val result = testService.createNewUser(user)
         status(result) mustBe CREATED
       }
     }
@@ -55,7 +53,7 @@ class RegistrationServiceSpec extends PlaySpec with MockitoSugar {
         when(mockRepo.insertNewUser(Matchers.any[UserAccount]()))
           .thenReturn(Future.successful(MongoFailedCreate))
 
-        val result = TestService.createNewUser(user)
+        val result = testService.createNewUser(user)
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -65,7 +63,7 @@ class RegistrationServiceSpec extends PlaySpec with MockitoSugar {
         .thenReturn(Future.successful(MongoSuccessDelete))
 
       val result = intercept[IllegalStateException] {
-        Await.result(TestService.createNewUser(user), 5.seconds)
+        Await.result(testService.createNewUser(user), 5.seconds)
       }
 
       result.getClass mustBe classOf[IllegalStateException]

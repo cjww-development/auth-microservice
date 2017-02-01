@@ -18,4 +18,5 @@ package config
 trait MongoCollections {
   val USER_ACCOUNTS = "user-accounts"
   val ORG_ACCOUNTS = "org-accounts"
+  val AUTH = "auth"
 }

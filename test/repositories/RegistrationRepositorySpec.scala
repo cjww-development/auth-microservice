@@ -35,15 +35,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
   val testUserData = UserAccount.newUser(UserAccount(None, "testFirstName", "testLastName", "testUserName", "test@email.com", "testPass", None, None, None))
 
   class Setup {
-    object TestRepo extends RegistrationRepository {
-      val mongoConnector = mockConnector
-    }
-  }
-
-  "RegistrationRepository" should {
-    "user the correct mongoConnector" in {
-      RegistrationRepository.mongoConnector mustBe MongoConnector
-    }
+    val testRepo = new RegistrationRepository(mockConnector)
   }
 
   "Inserting a new user document" should {
@@ -51,7 +43,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
       when(mockConnector.create[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.eq(testUserData))(Matchers.eq(UserAccount.format)))
         .thenReturn(Future.successful(MongoSuccessCreate))
 
-      val result = Await.result(TestRepo.insertNewUser(testUserData), 5.seconds)
+      val result = Await.result(testRepo.insertNewUser(testUserData), 5.seconds)
       result mustBe MongoSuccessCreate
     }
   }
@@ -63,7 +55,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
       when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.eq(testQuery))(Matchers.eq(UserAccount.format)))
         .thenReturn(Future.successful(MongoSuccessRead(testUserData)))
 
-      val result = Await.result(TestRepo.verifyUserName("testUserName"), 5.seconds)
+      val result = Await.result(testRepo.verifyUserName("testUserName"), 5.seconds)
       result mustBe UserNameInUse
     }
 
@@ -73,7 +65,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
       when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.eq(testQuery))(Matchers.eq(UserAccount.format)))
         .thenReturn(Future.successful(MongoFailedRead))
 
-      val result = Await.result(TestRepo.verifyUserName("testUserName"), 5.seconds)
+      val result = Await.result(testRepo.verifyUserName("testUserName"), 5.seconds)
       result mustBe UserNameNotInUse
     }
 
@@ -84,7 +76,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
         .thenReturn(Future.successful(MongoSuccessDelete))
 
       val result = intercept[IllegalStateException] {
-        Await.result(TestRepo.verifyUserName("testUserName"), 5.seconds)
+        Await.result(testRepo.verifyUserName("testUserName"), 5.seconds)
       }
 
       result.getClass mustBe classOf[IllegalStateException]
@@ -98,7 +90,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
       when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.eq(testQuery))(Matchers.eq(UserAccount.format)))
         .thenReturn(Future.successful(MongoSuccessRead(testUserData)))
 
-      val result = Await.result(TestRepo.verifyEmail("test@email.com"), 5.seconds)
+      val result = Await.result(testRepo.verifyEmail("test@email.com"), 5.seconds)
       result mustBe EmailInUse
     }
 
@@ -108,7 +100,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
       when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.eq(testQuery))(Matchers.eq(UserAccount.format)))
         .thenReturn(Future.successful(MongoFailedRead))
 
-      val result = Await.result(TestRepo.verifyEmail("test@email.com"), 5.seconds)
+      val result = Await.result(testRepo.verifyEmail("test@email.com"), 5.seconds)
       result mustBe EmailNotInUse
     }
 
@@ -119,7 +111,7 @@ class RegistrationRepositorySpec extends PlaySpec with MockitoSugar with MongoMo
         .thenReturn(Future.successful(MongoSuccessDelete))
 
       val result = intercept[IllegalStateException] {
-        Await.result(TestRepo.verifyEmail("test@email.com"), 5.seconds)
+        Await.result(testRepo.verifyEmail("test@email.com"), 5.seconds)
       }
 
       result.getClass mustBe classOf[IllegalStateException]
