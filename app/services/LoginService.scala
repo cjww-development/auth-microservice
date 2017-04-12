@@ -15,57 +15,35 @@
 // limitations under the License.
 package services
 
+import com.cjwwdev.mongo.{MongoFailedCreate, MongoFailedRead, MongoSuccessCreate, MongoSuccessRead}
 import com.google.inject.{Inject, Singleton}
-import config._
-import models.{AuthContext, AuthContextDetail, Login, UserAccount}
-import play.api.Logger
-import play.api.mvc.Result
-import play.api.mvc.Results._
+import models.{AuthContext, Login, UserAccount}
 import repositories.LoginRepository
-import utils.security.DataSecurity
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class LoginService @Inject()(loginRepository: LoginRepository) {
-
-  def login(credentials : Login) : Future[Result] = {
+  def login(credentials : Login) : Future[Option[AuthContext]] = {
     loginRepository.validateIndividualUser(credentials) flatMap {
-      case Some(account) =>
-        processAuthContext(account) map {
-          case Some(detail) =>
-            DataSecurity.encryptData[AuthContextDetail](detail) match {
-              case Some(data) => Ok(data)
-              case None => InternalServerError
-            }
-          case None => Forbidden
-        }
-      case None => Future.successful(Forbidden)
+      case Some(account) => processAuthContext(account)
+      case _ => Future.successful(None)
     }
   }
 
-  def getContext(id : String) : Future[Result] = {
+  def getContext(id : String) : Future[Option[AuthContext]] = {
     loginRepository.fetchContext(id) map {
-      case MongoFailedRead => NotFound
-      case MongoSuccessRead(context) =>
-        Logger.debug(s"CONTEXT : $context")
-        DataSecurity.encryptData[AuthContext](context.asInstanceOf[AuthContext]) match {
-          case Some(data) =>
-            Logger.debug(s"GET CONTEXT: $context")
-            Ok(data)
-          case None => InternalServerError
-        }
-      case _ => throw new IllegalStateException
+      case MongoSuccessRead(context) => Some(context.asInstanceOf[AuthContext])
+      case MongoFailedRead => None
     }
   }
 
-  def processAuthContext(acc : UserAccount) : Future[Option[AuthContextDetail]] = {
+  private[services] def processAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
     val generatedAuthContext = AuthContext.generate(acc._id.get, acc.firstName, acc.lastName)
     loginRepository.cacheContext(generatedAuthContext) map {
-      case MongoSuccessCreate => Some(AuthContextDetail.build(generatedAuthContext._id, acc))
+      case MongoSuccessCreate => Some(generatedAuthContext)
       case MongoFailedCreate => None
-      case _ => throw new IllegalStateException
     }
   }
 }

@@ -18,22 +18,28 @@ package helpers
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import config.{ConfigurationStrings, MongoCollections}
+import config.ApplicationConfiguration
 import mocks.MongoMocks
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfter, TestSuite}
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.{Await, Awaitable}
 import scala.concurrent.duration._
 
-trait CJWWSpec extends PlaySpec with OneAppPerSuite with MongoMocks with MockitoSugar with ConfigurationStrings with MongoCollections  {
+trait CJWWSpec
+  extends PlaySpec
+    with MockitoSugar
+    with MongoMocks
+    with ApplicationConfiguration
+    with BeforeAndAfter
+    with OneAppPerSuite
+    with TestSuite {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val ws = AhcWSClient()
 
-  def await[T](future : Awaitable[T]) : T = {
-    Await.result(future, 5.seconds)
-  }
+  def await[T](future : Awaitable[T]) : T = Await.result(future, 5.seconds)
 }

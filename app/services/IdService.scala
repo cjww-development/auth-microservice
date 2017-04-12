@@ -17,17 +17,9 @@ package services
 
 import java.util.UUID
 
-object IdService extends IdService
-
 trait IdService {
-
-  def generateUserId : String = s"user-${UUID.randomUUID()}"
-
   def generateHubId : String = s"hub-${UUID.randomUUID()}"
-
   def generateDiagnosticsId : String = s"diag-${UUID.randomUUID()}"
-
   def generateDeversityId : String = s"deversity-${UUID.randomUUID()}"
-
   def generateContextId : String = s"context-${UUID.randomUUID()}"
 }

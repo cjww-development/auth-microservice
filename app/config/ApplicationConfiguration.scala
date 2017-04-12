@@ -15,19 +15,12 @@
 // limitations under the License.
 package config
 
-import com.typesafe.config.ConfigFactory
-import utils.security.Encryption
+import com.cjwwdev.bootstrap.config.BaseConfiguration
 
-trait ConfigurationStrings {
-  val config = ConfigFactory.load
+trait ApplicationConfiguration extends BaseConfiguration {
+  val databaseUri             = config.getString("mongo.uri")
 
-  val env = config.getString("cjww.environment")
-
-  val AUTH_MICROSERVICE_ID = Encryption.sha512(config.getString(s"$env.application-ids.auth-microservice"))
-  val API_ID = Encryption.sha512(config.getString(s"$env.application-ids.rest-api"))
-  val AUTH_ID = Encryption.sha512(config.getString(s"$env.application-ids.auth-service"))
-  val DIAG_ID = Encryption.sha512(config.getString(s"$env.application-ids.diagnostics-frontend"))
-  val DEV_ID = Encryption.sha512(config.getString(s"$env.application-ids.deversity-frontend"))
-
-  val databaseUri = config.getString(s"$env.mongo.uri")
+  val USER_ACCOUNTS           = "user-accounts"
+  val ORG_ACCOUNTS            = "org-accounts"
+  val AUTH                    = "auth"
 }

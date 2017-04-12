@@ -69,15 +69,4 @@ class UserAccountSpec extends PlaySpec {
       result mustBe Json.parse(testJson)
     }
   }
-
-  "A NEW user account (without UserId or createdAt)" should {
-    "be copied and the relevant detail should be added" in {
-      val result = UserAccount.newUser(testUser)
-
-      val year = DateTime.now.year.get
-
-      result._id.get.contains("user") mustBe true
-      result.metadata.get("createdAt").toString.contains(s"$year")
-    }
-  }
 }

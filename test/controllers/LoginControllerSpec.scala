@@ -18,12 +18,11 @@ package controllers
 import helpers.CJWWSpec
 import models.{AuthContext, Login}
 import play.api.test.FakeRequest
-import play.api.mvc.Results._
 import play.api.test.Helpers._
 import services.LoginService
-import utils.security.DataSecurity
+import com.cjwwdev.security.encryption.DataSecurity
 import org.mockito.Mockito._
-import org.mockito.Matchers
+import org.mockito.ArgumentMatchers
 
 import scala.concurrent.Future
 
@@ -46,13 +45,12 @@ class LoginControllerSpec extends CJWWSpec {
   "login" should {
     "return an OK" when {
       "the user has been successfully validated and the body should contain an encrypted auth context" in new Setup {
-        when(mockLoginService.login(Matchers.eq(testCredentials)))
-          .thenReturn(Future.successful(Ok(encTestContext)))
+        when(mockLoginService.login(ArgumentMatchers.eq(testCredentials)))
+          .thenReturn(Future.successful(Some(testContext)))
 
-        val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appID" -> AUTH_MICROSERVICE_ID))
+        val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
         status(result) mustBe OK
         contentAsString(result) mustBe encTestContext
-
         DataSecurity.decryptInto[AuthContext](contentAsString(result)).get mustBe testContext
       }
     }
@@ -64,17 +62,40 @@ class LoginControllerSpec extends CJWWSpec {
       }
 
       "a request is made with an invalid payload" in new Setup {
-        val result = testController.login("INVALIDPAYLOAD")(FakeRequest().withHeaders("appID" -> AUTH_MICROSERVICE_ID))
-        status(result) mustBe FORBIDDEN
+        val result = testController.login("INVALIDPAYLOAD")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
+        status(result) mustBe BAD_REQUEST
       }
 
       "the users credentials dont match anything on record" in new Setup {
-        when(mockLoginService.login(Matchers.eq(testCredentials)))
-          .thenReturn(Future.successful(Forbidden))
+        when(mockLoginService.login(ArgumentMatchers.eq(testCredentials)))
+          .thenReturn(Future.successful(None))
 
-        val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appID" -> AUTH_MICROSERVICE_ID))
+        val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
         status(result) mustBe FORBIDDEN
       }
+    }
+  }
+
+  "getContext" should {
+    "return an OK" in new Setup {
+      when(mockLoginService.getContext(ArgumentMatchers.any()))
+        .thenReturn(Future.successful(Some(testContext)))
+
+      val result = testController.getContext("context-test-id-12345")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
+      status(result) mustBe OK
+    }
+
+    "return a NOT_FOUND" in new Setup {
+      when(mockLoginService.getContext(ArgumentMatchers.any()))
+        .thenReturn(Future.successful(None))
+
+      val result = testController.getContext("context-test-id-12345")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
+      status(result) mustBe NOT_FOUND
+    }
+
+    "return a FORBIDDEN" in new Setup {
+      val result = testController.getContext("context-test-id-12345")(FakeRequest())
+      status(result) mustBe FORBIDDEN
     }
   }
 }

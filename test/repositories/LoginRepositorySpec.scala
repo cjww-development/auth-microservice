@@ -15,15 +15,13 @@
 // limitations under the License.
 package repositories
 
-import config.{MongoFailedRead, MongoSuccessRead}
-import connectors.MongoConnector
+import com.cjwwdev.mongo._
 import helpers.CJWWSpec
-import models.{AuthContext, Login, User, UserAccount}
+import models._
 import org.mockito.Mockito._
-import org.mockito.Matchers
+import org.mockito.ArgumentMatchers
 import play.api.libs.json.OFormat
-import reactivemongo.bson.BSONDocument
-import utils.security.DataSecurity
+import com.cjwwdev.security.encryption.DataSecurity
 
 import scala.concurrent.Future
 
@@ -53,7 +51,7 @@ class LoginRepositorySpec extends CJWWSpec {
   "validateIndividualUser" should {
     "return None" when {
       "the users credential don't match anything on record" in new Setup {
-        when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.any[BSONDocument]())(Matchers.any[OFormat[UserAccount]]()))
+        when(mockConnector.read[UserAccount](ArgumentMatchers.eq(USER_ACCOUNTS), ArgumentMatchers.any())(ArgumentMatchers.any[OFormat[UserAccount]]()))
           .thenReturn(Future.successful(MongoFailedRead))
 
         val result = await(testRepo.validateIndividualUser(testLogin))
@@ -61,17 +59,54 @@ class LoginRepositorySpec extends CJWWSpec {
       }
     }
 
-//    "return an AuthContext" when {
-//      "the user has been successfully validated" in new Setup {
-//        when(mockConnector.read[UserAccount](Matchers.eq(USER_ACCOUNTS), Matchers.any[BSONDocument]())(Matchers.any[OFormat[UserAccount]]()))
-//          .thenReturn(Future.successful(MongoSuccessRead(testUserAccount)))
-//
-//        val result = await(testRepo.validateIndividualUser(testLogin))
-//
-//        result.get.basicDetailsUri mustBe testContext.basicDetailsUri
-//        result.get.enrolmentsUri mustBe testContext.enrolmentsUri
-//        result.get.settingsUri mustBe testContext.settingsUri
-//      }
-//    }
+    "return an AuthContext" when {
+      "the user has been successfully validated" in new Setup {
+        when(mockConnector.read[UserAccount](ArgumentMatchers.eq(USER_ACCOUNTS), ArgumentMatchers.any())(ArgumentMatchers.any[OFormat[UserAccount]]()))
+          .thenReturn(Future.successful(MongoSuccessRead(testUserAccount)))
+
+        val result = await(testRepo.validateIndividualUser(testLogin))
+        result mustBe Some(testUserAccount)
+      }
+    }
+  }
+
+  "cacheContext" should {
+    "return a MongoCreateResponse" when {
+      "an auth context has been cached" in new Setup {
+        when(mockConnector.create(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoSuccessCreate))
+
+        val result = await(testRepo.cacheContext(testContext))
+        result mustBe MongoSuccessCreate
+      }
+
+      "there was a problem caching the context" in new Setup {
+        when(mockConnector.create(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoFailedCreate))
+
+        val result = await(testRepo.cacheContext(testContext))
+        result mustBe MongoFailedCreate
+      }
+    }
+  }
+
+  "fetchContext" should {
+    "return a MongoReadResponse" when {
+      "a matching auth context has been found" in new Setup {
+        when(mockConnector.read[AuthContext](ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoSuccessRead(testContext)))
+
+        val result = await(testRepo.fetchContext("user-1234567890"))
+        result mustBe MongoSuccessRead(testContext)
+      }
+
+      "no matching auth context has been found" in new Setup {
+        when(mockConnector.read[AuthContext](ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoFailedRead))
+
+        val result = await(testRepo.fetchContext("user-1234567890"))
+        result mustBe MongoFailedRead
+      }
+    }
   }
 }

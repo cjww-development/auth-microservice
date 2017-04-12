@@ -15,27 +15,29 @@
 // limitations under the License.
 package controllers
 
+import com.cjwwdev.auth.actions.{Authorised, BaseAuth, NotAuthorised}
 import com.google.inject.{Inject, Singleton}
-import models.Login
-import play.api.Logger
+import com.cjwwdev.security.encryption.DataSecurity
+import models.{AuthContext, Login}
 import play.api.mvc.{Action, AnyContent}
 import services.LoginService
-import utils.application.{Authorised, BackendController, NotAuthorised}
-import utils.security.DataSecurity
+import utils.application.BackendController
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginController @Inject()(loginService : LoginService) extends BackendController {
+class LoginController @Inject()(loginService : LoginService) extends BackendController with BaseAuth {
 
   def login(enc : String) : Action[AnyContent] = Action.async {
     implicit request =>
       openActionVerification {
         case Authorised =>
-          DataSecurity.decryptInto[Login](enc.replace(" ","+")) match {
-            case Some(credentials) =>
-              loginService.login(credentials)
-            case None => Future.successful(Forbidden)
+          decryptUrl[Login](enc) { creds =>
+            loginService.login(creds) map {
+              case Some(context) => Ok(DataSecurity.encryptData[AuthContext](context).get)
+              case None => Forbidden
+            }
           }
         case NotAuthorised => Future.successful(Forbidden)
       }
@@ -43,9 +45,11 @@ class LoginController @Inject()(loginService : LoginService) extends BackendCont
 
   def getContext(contextId : String) : Action[AnyContent] = Action.async {
     implicit request =>
-      Logger.debug(s"ENC : $contextId")
       openActionVerification {
-        case Authorised => loginService.getContext(contextId)
+        case Authorised => loginService.getContext(contextId) map {
+          case Some(context) => Ok(DataSecurity.encryptData[AuthContext](context).get)
+          case None => NotFound
+        }
         case NotAuthorised => Future.successful(Forbidden)
       }
   }

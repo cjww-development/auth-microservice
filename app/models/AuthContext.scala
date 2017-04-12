@@ -18,7 +18,6 @@ package models
 
 import play.api.libs.json.Json
 import services.IdService
-import utils.security.DataSecurity
 
 case class AuthContext(_id : String,
                        user : User,
@@ -30,33 +29,17 @@ case class User(userId : String,
                 firstName : String,
                 lastName : String)
 
-object AuthContext {
+object AuthContext extends IdService {
   implicit val formatUser = Json.format[User]
   implicit val format = Json.format[AuthContext]
 
   def generate(userId : String, firstName : String, lastName : String) : AuthContext = {
     AuthContext(
-      _id              = IdService.generateContextId,
+      _id              = generateContextId,
       user             = User(userId, firstName, lastName),
-      basicDetailsUri  = s"/accounts/basic-details/$userId",
-      enrolmentsUri    = s"/accounts/enrolments/$userId",
-      settingsUri      = s"/accounts/settings/$userId"
-    )
-  }
-}
-
-case class AuthContextDetail(contextId : String,
-                             firstName : String,
-                             lastName : String)
-
-object AuthContextDetail {
-  implicit val format = Json.format[AuthContextDetail]
-
-  def build(cId : String, acc : UserAccount) : AuthContextDetail = {
-    AuthContextDetail(
-      contextId = cId,
-      firstName = acc.firstName,
-      lastName = acc.lastName
+      basicDetailsUri  = s"/account/$userId/basic-details",
+      enrolmentsUri    = s"/account/$userId/enrolments",
+      settingsUri      = s"/account/$userId/settings"
     )
   }
 }

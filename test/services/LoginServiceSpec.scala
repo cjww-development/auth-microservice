@@ -15,13 +15,12 @@
 // limitations under the License.
 package services
 
-import config.MongoSuccessCreate
+import com.cjwwdev.mongo.{MongoFailedCreate, MongoFailedRead, MongoSuccessCreate, MongoSuccessRead}
 import helpers.CJWWSpec
-import models.{AuthContext, Login, User, UserAccount}
+import models._
 import repositories.LoginRepository
 import org.mockito.Mockito._
-import org.mockito.Matchers
-import play.api.test.Helpers._
+import org.mockito.ArgumentMatchers
 
 import scala.concurrent.Future
 
@@ -43,32 +42,93 @@ class LoginServiceSpec extends CJWWSpec {
     )
 
   class Setup {
-    val testService = new LoginService(mockRepo)
+
+    val testDefaultService = new LoginService(mockRepo)
+
+    val testService = new LoginService(mockRepo) {
+      override private[services] def processAuthContext(acc: UserAccount) = Future.successful(Some(testContext))
+    }
+
+    val testServiceFail = new LoginService(mockRepo) {
+      override private[services] def processAuthContext(acc: UserAccount) = Future.successful(None)
+    }
   }
 
+  before(
+    reset(mockRepo)
+  )
 
   "login" should {
-    "return forbidden" when {
-      "a user with the input credentials isnt found" in new Setup {
-        when(mockRepo.validateIndividualUser(Matchers.eq(testCredentials)))
-          .thenReturn(Future.successful(None))
+    "return an AuthContext" when {
+      "the user has been successfully validated" in new Setup {
+        when(mockRepo.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
+          .thenReturn(Future.successful(Some(testUser)))
 
-        val result = testService.login(testCredentials)
-        status(result) mustBe FORBIDDEN
+        val result = await(testService.login(testCredentials))
+        result mustBe Some(testContext)
       }
     }
 
-//    "return ok" when {
-//      "the user has been successfully validated" in new Setup {
-//        when(mockRepo.validateIndividualUser(Matchers.eq(testCredentials)))
-//          .thenReturn(Future.successful(Some(testUser)))
-//
-//        when(mockRepo.cacheContext(Matchers.eq(testContext)))
-//          .thenReturn(Future.successful(MongoSuccessCreate))
-//
-//        val result = testService.login(testCredentials)
-//        status(result) mustBe OK
-//      }
-//    }
+    "return None" when {
+      "no valid user has been found" in new Setup {
+        when(mockRepo.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
+          .thenReturn(Future.successful(None))
+
+        val result = await(testServiceFail.login(testCredentials))
+        result mustBe None
+      }
+
+      "there was a problem caching the AuthContextDetail" in new Setup {
+        when(mockRepo.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
+          .thenReturn(Future.successful(Some(testUser)))
+
+        val result = await(testServiceFail.login(testCredentials))
+        result mustBe None
+      }
+    }
+  }
+
+  "getContext" should {
+    "return an auth context" when {
+      "a matching context is found" in new Setup {
+        when(mockRepo.fetchContext(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoSuccessRead(testContext)))
+
+        val result = await(testService.getContext("testUserId"))
+        result mustBe Some(testContext)
+      }
+    }
+
+    "return none" when {
+      "no matching context is found" in new Setup {
+        when(mockRepo.fetchContext(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoFailedRead))
+
+        val result = await(testService.getContext("testUserId"))
+        result mustBe None
+      }
+    }
+  }
+
+  "processAuthContext" should {
+    "return an auth context" when {
+      "one has been generated and cached" in new Setup {
+        when(mockRepo.cacheContext(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoSuccessCreate))
+
+        val result = await(testDefaultService.processAuthContext(testUser))
+        result.get.user.userId mustBe "testUserId"
+      }
+    }
+
+    "return none" when {
+      "one has been generated but there was a problem caching" in new Setup {
+        when(mockRepo.cacheContext(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(MongoFailedCreate))
+
+        val result = await(testDefaultService.processAuthContext(testUser))
+        result mustBe None
+      }
+    }
   }
 }

@@ -15,24 +15,18 @@
 // limitations under the License.
 package utils.application
 
-import config.ConfigurationStrings
-import play.api.Logger
+import com.cjwwdev.logging.Logger
+import com.cjwwdev.security.encryption.DataSecurity
+import config.ApplicationConfiguration
 import play.api.libs.json.{Format, Reads}
 import play.api.mvc.{Controller, Request, Result}
-import utils.security.DataSecurity
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-sealed trait AuthorisationResponse
-case object NotAuthorised extends AuthorisationResponse
-case object Authorised extends AuthorisationResponse
-
-trait BackendController extends Controller with ConfigurationStrings {
-
-  protected def decryptRequest[T]
-  (f : T => Future[Result])(implicit request : Request[String], manifest: Manifest[T], reads : Reads[T], format : Format[T]): Future[Result] = {
-    Try(DataSecurity.decryptInto[T](request.body)) match {
+trait BackendController extends Controller {
+  protected def decryptRequest[T](f : T => Future[Result])(implicit request : Request[_], manifest: Manifest[T], reads : Reads[T], format : Format[T]) = {
+    Try(DataSecurity.decryptInto[T](request.body.toString)) match {
       case Success(Some(data)) =>
         Logger.info("[BackendController] - [decryptRequest] : Request decryption successful")
         f(data)
@@ -44,21 +38,16 @@ trait BackendController extends Controller with ConfigurationStrings {
     }
   }
 
-  protected def openActionVerification(f : AuthorisationResponse => Future[Result])(implicit request : Request[_]): Future[Result] = {
-    f(checkAuth(request.headers.get("appID")))
-  }
-
-  private def checkAuth(appId : Option[String]) : AuthorisationResponse = {
-    appId match {
-      case Some(id) => id match {
-        case AUTH_MICROSERVICE_ID | AUTH_ID | DIAG_ID | DEV_ID => Authorised
-        case _ =>
-          Logger.warn("[BackendController] - [checkAuth] : API CALL FROM UNKNOWN SOURCE - ACTION DENIED")
-          NotAuthorised
-      }
-      case _ =>
-        Logger.warn("[BackendController] - [checkAuth] : API CALL FROM UNKNOWN SOURCE - ACTION DENIED")
-        NotAuthorised
+  protected def decryptUrl[T](enc: String)(f : T => Future[Result])(implicit format : Format[T]): Future[Result] = {
+    Try(DataSecurity.decryptInto[T](enc)) match {
+      case Success(Some(data)) =>
+        Logger.info("[BackendController] - [decryptRequest] : Request decryption successful")
+        f(data)
+      case Success(None) => Future.successful(BadRequest)
+      case Failure(e) =>
+        Logger.error(s"[BackendController] - [decryptRequest] : Request body decryption has FAILED")
+        e.printStackTrace()
+        Future.successful(BadRequest)
     }
   }
 }

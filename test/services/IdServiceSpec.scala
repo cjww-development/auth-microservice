@@ -23,28 +23,6 @@ class IdServiceSpec extends PlaySpec {
     object TestService extends IdService
   }
 
-  "generateUserId" should {
-    "return a string that contains 'user' and is exactly 41 characters long" in new Setup {
-      val resultOne = TestService.generateUserId
-      val resultTwo = TestService.generateUserId
-      val resultThree = TestService.generateUserId
-      val resultFour = TestService.generateUserId
-      val resultFive = TestService.generateUserId
-
-      assert(resultOne.contains("user"))
-      assert(resultTwo.contains("user"))
-      assert(resultThree.contains("user"))
-      assert(resultFour.contains("user"))
-      assert(resultFive.contains("user"))
-
-      resultOne.length mustBe 41
-      resultTwo.length mustBe 41
-      resultThree.length mustBe 41
-      resultFour.length mustBe 41
-      resultFive.length mustBe 41
-    }
-  }
-
   "generateHubId" should {
     "return a string that contains 'hub' and is exactly 40 characters long" in new Setup {
       val resultOne = TestService.generateHubId

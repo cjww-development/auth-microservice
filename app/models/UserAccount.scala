@@ -29,12 +29,7 @@ case class UserAccount(_id : Option[String],
                        enrolments: Option[Enrolments] = None,
                        settings : Option[Map[String, String]] = None)
 
-object UserAccount {
-
-  def newUser(user : UserAccount) : UserAccount = {
-    user.copy(_id = Some(IdService.generateUserId), metadata = Some(Map("createdAt" -> DateTime.now())))
-  }
-
+object UserAccount extends IdService {
   implicit val dateTimeRead: Reads[DateTime] =
     (__ \ "$date").read[Long].map { dateTime =>
       new DateTime(dateTime, DateTimeZone.UTC)
