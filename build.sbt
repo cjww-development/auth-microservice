@@ -1,6 +1,5 @@
 import com.typesafe.config.ConfigFactory
 import scoverage.ScoverageKeys
-
 import scala.util.{Try, Success, Failure}
 
 val btVersion: String = {
@@ -13,7 +12,7 @@ val btVersion: String = {
 name := """auth-microservice"""
 version := btVersion
 scalaVersion := "2.11.10"
-organization := "com.cjww-dev.apps"
+organization := "com.cjww-dev.backends"
 
 lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;config.*;utils.*;.*(AuthService|BuildInfo|Routes).*",
@@ -49,3 +48,8 @@ resolvers += "cjww-dev" at "http://dl.bintray.com/cjww-development/releases"
 
 herokuAppName in Compile := "cjww-auth-microservice"
 routesGenerator := InjectedRoutesGenerator
+
+bintrayOrganization := Some("cjww-development")
+bintrayReleaseOnPublish in ThisBuild := false
+bintrayRepository := "releases"
+bintrayOmitLicense := true
