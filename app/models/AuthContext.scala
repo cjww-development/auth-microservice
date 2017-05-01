@@ -19,7 +19,7 @@ package models
 import play.api.libs.json.Json
 import services.IdService
 
-case class AuthContext(_id : String,
+case class AuthContext(contextId : String,
                        user : User,
                        basicDetailsUri : String,
                        enrolmentsUri : String,
@@ -35,7 +35,7 @@ object AuthContext extends IdService {
 
   def generate(userId : String, firstName : String, lastName : String) : AuthContext = {
     AuthContext(
-      _id              = generateContextId,
+      contextId        = generateContextId,
       user             = User(userId, firstName, lastName),
       basicDetailsUri  = s"/account/$userId/basic-details",
       enrolmentsUri    = s"/account/$userId/enrolments",

@@ -11,8 +11,10 @@ val btVersion: String = {
 
 name := """auth-microservice"""
 version := btVersion
-scalaVersion := "2.11.10"
+scalaVersion := "2.11.11"
 organization := "com.cjww-dev.backends"
+
+lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
 lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;config.*;utils.*;.*(AuthService|BuildInfo|Routes).*",
@@ -23,16 +25,22 @@ lazy val scoverageSettings = Seq(
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .settings(scoverageSettings : _*)
+  .settings(playSettings ++ scoverageSettings : _*)
+  .configs(IntegrationTest)
+  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
+  .settings(
+    Keys.fork in IntegrationTest := false,
+    unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
+    parallelExecution in IntegrationTest := false)
 
 PlayKeys.devSettings := Seq("play.server.http.port" -> "8601")
 
 val cjwwDep: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "data-security_2.11" % "0.6.0",
-  "com.cjww-dev.libs" % "logging_2.11" % "0.2.0",
-  "com.cjww-dev.libs" % "reactive-mongo_2.11" % "0.7.0",
-  "com.cjww-dev.libs" % "bootstrapper_2.11" % "0.6.0",
-  "com.cjww-dev.libs" % "backend-auth_2.11" % "0.4.0"
+  "com.cjww-dev.libs" % "data-security_2.11" % "0.7.0",
+  "com.cjww-dev.libs" % "logging_2.11" % "0.3.0",
+  "com.cjww-dev.libs" % "reactive-mongo_2.11" % "1.6.0",
+  "com.cjww-dev.libs" % "bootstrapper_2.11" % "0.8.0",
+  "com.cjww-dev.libs" % "backend-auth_2.11" % "0.8.0"
 )
 
 val testDep: Seq[ModuleID] = Seq(

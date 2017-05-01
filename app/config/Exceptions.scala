@@ -15,8 +15,9 @@
 // limitations under the License.
 package config
 
-import com.cjwwdev.bootstrap.config.BaseConfiguration
+import scala.util.control.NoStackTrace
 
-trait ApplicationConfiguration extends BaseConfiguration {
-  val ORG_ACCOUNTS            = "org-accounts"
+object Exceptions {
+  class AccountNotFoundException(msg: String) extends NoStackTrace
+  class AuthContextNotFoundException(msg: String) extends NoStackTrace
 }

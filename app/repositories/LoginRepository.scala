@@ -15,30 +15,29 @@
 // limitations under the License.
 package repositories
 
-import com.google.inject.{Inject, Singleton}
-import com.cjwwdev.mongo._
-import config.ApplicationConfiguration
-import models.{AuthContext, Login, UserAccount}
+import javax.inject.Singleton
+
+import com.cjwwdev.reactivemongo._
+import config.Exceptions.AccountNotFoundException
+import models.{Login, UserAccount}
+import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginRepository @Inject()(mongoConnector: MongoConnector) extends ApplicationConfiguration {
-  def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
+class LoginRepository extends MongoConnector {
+  val store = new LoginRepo(db)
+}
+
+class LoginRepo(db: () => DB) extends MongoRepository("user-accounts", db) {
+  def validateIndividualUser(userdetails : Login) : Future[UserAccount] = {
     val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
-    mongoConnector.read[UserAccount](USER_ACCOUNTS, query) map {
-      case MongoSuccessRead(acc) => Some(acc.asInstanceOf[UserAccount])
-      case MongoFailedRead => None
+    collection.find(query).one[UserAccount] map {
+      case Some(acc) => acc
+      case None => throw new AccountNotFoundException("Account not found, invalid credentials")
     }
-  }
-
-  def cacheContext(context: AuthContext) : Future[MongoCreateResponse] = {
-    mongoConnector.create[AuthContext](AUTH, context)
-  }
-
-  def fetchContext(id : String) : Future[MongoReadResponse] = {
-    mongoConnector.read[AuthContext](AUTH, BSONDocument("_id" -> id))
   }
 }

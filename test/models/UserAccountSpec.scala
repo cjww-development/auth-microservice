@@ -15,7 +15,6 @@
 // limitations under the License.
 package models
 
-import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 

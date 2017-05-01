@@ -15,33 +15,41 @@
 // limitations under the License.
 package services
 
-import com.cjwwdev.mongo.{MongoFailedCreate, MongoFailedRead, MongoSuccessCreate, MongoSuccessRead}
+import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import com.google.inject.{Inject, Singleton}
+import config.Exceptions.{AccountNotFoundException, AuthContextNotFoundException}
 import models.{AuthContext, Login, UserAccount}
-import repositories.LoginRepository
+import repositories.{ContextRepo, ContextRepository, LoginRepo, LoginRepository}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginService @Inject()(loginRepository: LoginRepository) {
+class LoginService @Inject()(loginRepository: LoginRepository,
+                             contextRepository: ContextRepository) {
+
+  val loginStore: LoginRepo = loginRepository.store
+  val contextStore: ContextRepo = contextRepository.store
+
   def login(credentials : Login) : Future[Option[AuthContext]] = {
-    loginRepository.validateIndividualUser(credentials) flatMap {
-      case Some(account) => processAuthContext(account)
-      case _ => Future.successful(None)
+    loginStore.validateIndividualUser(credentials) flatMap {
+      account => processAuthContext(account)
+    } recover {
+      case _: AccountNotFoundException => None
     }
   }
 
   def getContext(id : String) : Future[Option[AuthContext]] = {
-    loginRepository.fetchContext(id) map {
-      case MongoSuccessRead(context) => Some(context.asInstanceOf[AuthContext])
-      case MongoFailedRead => None
+    contextStore.fetchContext(id) map {
+      context => Some(context)
+    } recover {
+      case _: AuthContextNotFoundException => None
     }
   }
 
   private[services] def processAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
     val generatedAuthContext = AuthContext.generate(acc._id.get, acc.firstName, acc.lastName)
-    loginRepository.cacheContext(generatedAuthContext) map {
+    contextStore.cacheContext(generatedAuthContext) map {
       case MongoSuccessCreate => Some(generatedAuthContext)
       case MongoFailedCreate => None
     }
