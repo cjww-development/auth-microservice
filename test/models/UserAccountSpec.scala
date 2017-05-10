@@ -50,6 +50,7 @@ class UserAccountSpec extends PlaySpec {
       "test@email.com",
       "testPass",
       None,
+      None,
       Some(Enrolments(
         Some("testId"),
         Some("testId"),

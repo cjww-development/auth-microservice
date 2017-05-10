@@ -22,7 +22,7 @@ import utils.CJWWIntegrationUtils
 
 class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
-  "/auth/login/user" should {
+  "/auth/login/user (individual)" should {
     "return an OK" when {
       "the user has been successfully validated" in {
         beforeITest()
@@ -56,6 +56,51 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
       "the request is not authorised" in {
         val enc = DataSecurity.encryptData[Login](Login("testUserName", "testPassword")).get
+        val request = client(s"$baseUrl/login/user?enc=$enc")
+          .withHeaders(
+            CONTENT_TYPE -> TEXT
+          ).get()
+
+        val result = await(request)
+        result.status mustBe FORBIDDEN
+      }
+    }
+  }
+
+  "/auth/login/user (organisation)" should {
+    "return an OK" when {
+      "the user has been successfully validated" in {
+        beforeITest()
+
+        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
+        val request = client(s"$baseUrl/login/user?enc=$enc")
+          .withHeaders(
+            "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
+            CONTENT_TYPE -> TEXT
+          ).get()
+
+        val result = await(request)
+        result.status mustBe OK
+
+        afterITest()
+      }
+    }
+
+    "return a FORBIDDEN" when {
+      "the user has not been successfully validated" in {
+        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
+        val request = client(s"$baseUrl/login/user?enc=$enc")
+          .withHeaders(
+            "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
+            CONTENT_TYPE -> TEXT
+          ).get()
+
+        val result = await(request)
+        result.status mustBe FORBIDDEN
+      }
+
+      "the request is not authorised" in {
+        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             CONTENT_TYPE -> TEXT

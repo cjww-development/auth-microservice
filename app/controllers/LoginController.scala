@@ -16,9 +16,10 @@
 package controllers
 
 import com.cjwwdev.auth.actions.{Authorised, BaseAuth, NotAuthorised}
+import com.cjwwdev.auth.models.AuthContext
 import com.google.inject.{Inject, Singleton}
 import com.cjwwdev.security.encryption.DataSecurity
-import models.{AuthContext, Login}
+import models.Login
 import play.api.mvc.{Action, AnyContent}
 import services.LoginService
 import utils.application.BackendController

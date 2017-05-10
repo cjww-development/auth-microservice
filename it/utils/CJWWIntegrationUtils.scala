@@ -15,7 +15,8 @@
 // limitations under the License.
 package utils
 
-import models.{AuthContext, User, UserAccount}
+import com.cjwwdev.auth.models.{AuthContext, User}
+import models.{OrgAccount, UserAccount}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.{WS, WSRequest}
@@ -29,6 +30,7 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
 
   val loginRepo = new LoginRepository
   val contextRepo = new ContextRepository
+  val orgLoginRepo = new OrgLoginRepository
 
   val baseUrl = s"http://localhost:$port/auth"
 
@@ -37,12 +39,13 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, 5.seconds)
 
   private val testAccount = UserAccount(
-    _id = Some("user-test-user-id"),
+    userId = Some("user-test-user-id"),
     firstName = "testFirstName",
     lastName = "testLastName",
     userName = "testUserName",
     email = "test@email.com",
     password = "testPassword",
+    deversityDetails = None,
     metadata  = None,
     enrolments = None,
     settings = None
@@ -52,21 +55,39 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
     contextId = "context-test-context-id",
     user = User(
       userId = "user-test-user-id",
-      firstName = "testFirstName",
-      lastName = "testLastName"
+      firstName = Some("testFirstName"),
+      lastName = Some("testLastName"),
+      orgName = None,
+      "individual",
+      None
     ),
     basicDetailsUri = "/test/uri",
     enrolmentsUri = "/test/uri",
     settingsUri = "/test/uri"
   )
 
+  private val testOrgAccount = OrgAccount(
+    orgId = Some("org-test-org-id"),
+    orgName = "testOrgName",
+    initials = "TI",
+    orgUserName = "testOrgUserName",
+    location = "testLocation",
+    orgEmail = "test@email.com",
+    credentialType = Some("organisation"),
+    password = "testPass",
+    None,
+    None
+  )
+
   def beforeITest(): Unit = {
     await(loginRepo.store.collection.insert(testAccount))
     await(contextRepo.store.collection.insert(testContext))
+    await(orgLoginRepo.store.collection.insert(testOrgAccount))
   }
 
   def afterITest(): Unit = {
     await(loginRepo.store.collection.drop(failIfNotFound = false))
     await(contextRepo.store.collection.drop(failIfNotFound = false))
+    await(orgLoginRepo.store.collection.drop(failIfNotFound = false))
   }
 }

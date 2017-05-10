@@ -13,27 +13,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package repositories
 
-import javax.inject.Singleton
+package models
 
-import com.cjwwdev.reactivemongo._
-import models.{Login, UserAccount}
-import reactivemongo.api.DB
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json._
+import play.api.libs.json.{Json, OFormat}
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+case class DeversityEnrolment(statusConfirmed: String,
+                              schoolName: String,
+                              role: String,
+                              title: Option[String],
+                              room: Option[String],
+                              teacher: Option[String])
 
-@Singleton
-class LoginRepository extends MongoConnector {
-  val store = new LoginRepo(db)
-}
-
-class LoginRepo(db: () => DB) extends MongoRepository("user-accounts", db) {
-  def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
-    val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
-    collection.find(query).one[UserAccount]
-  }
+object DeversityEnrolment {
+  implicit val format: OFormat[DeversityEnrolment] = Json.format[DeversityEnrolment]
 }

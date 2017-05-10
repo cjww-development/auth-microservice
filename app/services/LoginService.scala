@@ -15,27 +15,35 @@
 // limitations under the License.
 package services
 
+import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import com.google.inject.{Inject, Singleton}
 import config.Exceptions.{AccountNotFoundException, AuthContextNotFoundException}
-import models.{AuthContext, Login, UserAccount}
-import repositories.{ContextRepo, ContextRepository, LoginRepo, LoginRepository}
+import models.{Login, OrgAccount, UserAccount}
+import repositories._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class LoginService @Inject()(loginRepository: LoginRepository,
-                             contextRepository: ContextRepository) {
+                             orgLoginRepository: OrgLoginRepository,
+                             contextRepository: ContextRepository) extends IdService {
 
-  val loginStore: LoginRepo = loginRepository.store
-  val contextStore: ContextRepo = contextRepository.store
+  val loginStore: LoginRepo       = loginRepository.store
+  val orgLoginStore: OrgLoginRepo = orgLoginRepository.store
+  val contextStore: ContextRepo   = contextRepository.store
+
+  private val INDIVIDUAL = "individual"
+  private val ORGANISATION = "organisation"
 
   def login(credentials : Login) : Future[Option[AuthContext]] = {
     loginStore.validateIndividualUser(credentials) flatMap {
-      account => processAuthContext(account)
-    } recover {
-      case _: AccountNotFoundException => None
+      case Some(acc)  => processUserAuthContext(acc)
+      case None       => orgLoginStore.validateOrganisationUser(credentials) flatMap {
+        case Some(acc)  => processOrgAuthContext(acc)
+        case None       => Future.successful(None)
+      }
     }
   }
 
@@ -47,11 +55,44 @@ class LoginService @Inject()(loginRepository: LoginRepository,
     }
   }
 
-  private[services] def processAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
-    val generatedAuthContext = AuthContext.generate(acc._id.get, acc.firstName, acc.lastName)
+  private[services] def processUserAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
+    val generatedAuthContext = generateUserAuthContext(acc)
     contextStore.cacheContext(generatedAuthContext) map {
-      case MongoSuccessCreate => Some(generatedAuthContext)
-      case MongoFailedCreate => None
+      case MongoSuccessCreate   => Some(generatedAuthContext)
+      case MongoFailedCreate    => None
     }
+  }
+
+  private[services] def processOrgAuthContext(acc: OrgAccount): Future[Option[AuthContext]] = {
+    val generatedAuthContext = generateOrgAuthContext(acc)
+    contextStore.cacheContext(generatedAuthContext) map {
+      case MongoSuccessCreate   => Some(generatedAuthContext)
+      case MongoFailedCreate    => None
+    }
+  }
+
+  def generateUserAuthContext(acc: UserAccount): AuthContext = {
+    val role = acc.deversityDetails match {
+      case Some(details)  => Some(details.role)
+      case _              => None
+    }
+
+    AuthContext(
+      contextId        = generateContextId,
+      user             = User(acc.userId.get, Some(acc.firstName), Some(acc.lastName), None, INDIVIDUAL, role),
+      basicDetailsUri  = s"/account/${acc.userId.get}/basic-details",
+      enrolmentsUri    = s"/account/${acc.userId.get}/enrolments",
+      settingsUri      = s"/account/${acc.userId.get}/settings"
+    )
+  }
+
+  def generateOrgAuthContext(acc: OrgAccount): AuthContext = {
+    AuthContext(
+      contextId = generateContextId,
+      user = User(acc.orgId.get, None, None, Some(acc.orgName), ORGANISATION, None),
+      basicDetailsUri  = s"/account/${acc.orgId.get}/basic-details",
+      enrolmentsUri    = s"/account/${acc.orgId.get}/enrolments",
+      settingsUri      = s"/account/${acc.orgId.get}/settings"
+    )
   }
 }

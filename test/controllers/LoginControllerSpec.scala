@@ -15,8 +15,9 @@
 // limitations under the License.
 package controllers
 
+import com.cjwwdev.auth.models.{AuthContext, User}
 import helpers.CJWWSpec
-import models.{AuthContext, Login}
+import models.Login
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.LoginService
@@ -34,7 +35,20 @@ class LoginControllerSpec extends CJWWSpec {
 
   val encTestCredentials = DataSecurity.encryptData[Login](testCredentials).get
 
-  val testContext = AuthContext.generate("testUserId", "firstName", "lastName")
+  private val testContext = AuthContext(
+    contextId = "context-test-context-id",
+    user = User(
+      userId = "user-test-user-id",
+      firstName = Some("testFirstName"),
+      lastName = Some("testLastName"),
+      orgName = None,
+      "individual",
+      None
+    ),
+    basicDetailsUri = "/test/uri",
+    enrolmentsUri = "/test/uri",
+    settingsUri = "/test/uri"
+  )
 
   val encTestContext = DataSecurity.encryptData[AuthContext](testContext).get
 

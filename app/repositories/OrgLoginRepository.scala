@@ -13,12 +13,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package repositories
 
-import javax.inject.Singleton
-
-import com.cjwwdev.reactivemongo._
-import models.{Login, UserAccount}
+import com.cjwwdev.reactivemongo.{MongoConnector, MongoRepository}
+import models.{Login, OrgAccount}
 import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -26,14 +25,13 @@ import reactivemongo.play.json._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class LoginRepository extends MongoConnector {
-  val store = new LoginRepo(db)
+class OrgLoginRepository extends MongoConnector {
+  val store = new OrgLoginRepo(db)
 }
 
-class LoginRepo(db: () => DB) extends MongoRepository("user-accounts", db) {
-  def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
-    val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
-    collection.find(query).one[UserAccount]
+class OrgLoginRepo(db: () => DB) extends MongoRepository("org-accounts", db) {
+  def validateOrganisationUser(userDetails: Login): Future[Option[OrgAccount]] = {
+    val query = BSONDocument("orgUserName" -> userDetails.username, "password" -> userDetails.password)
+    collection.find(query).one[OrgAccount]
   }
 }

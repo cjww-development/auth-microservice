@@ -15,10 +15,11 @@
 // limitations under the License.
 package services
 
+import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import helpers.CJWWSpec
 import models._
-import repositories.{ContextRepo, ContextRepository, LoginRepo, LoginRepository}
+import repositories._
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers
 
@@ -29,6 +30,9 @@ class LoginServiceSpec extends CJWWSpec {
   val mockLoginRepo = mock[LoginRepository]
   val mockLoginStore = mock[LoginRepo]
 
+  val mockOrgLoginRepo = mock[OrgLoginRepository]
+  val mockOrgLoginStore = mock[OrgLoginRepo]
+
   val mockContextRepo = mock[ContextRepository]
   val mockContextStore = mock[ContextRepo]
 
@@ -36,32 +40,41 @@ class LoginServiceSpec extends CJWWSpec {
 
   val testUser = UserAccount(Some("testUserId"),"testFirstName","testLastName","testUserName","test@email.com","testPass",None,None,None)
 
-  val testContext =
-    AuthContext(
-      "testContextId",
-      User("testUserId","testFirstName","testLastName"),
-      "testUri",
-      "testUri",
-      "testUri"
-    )
+  private val testContext = AuthContext(
+    contextId = "context-test-context-id",
+    user = User(
+      userId = "user-test-user-id",
+      firstName = Some("testFirstName"),
+      lastName = Some("testLastName"),
+      orgName = None,
+      "individual",
+      None
+    ),
+    basicDetailsUri = "/test/uri",
+    enrolmentsUri = "/test/uri",
+    settingsUri = "/test/uri"
+  )
 
   class Setup {
 
-    val testDefaultService = new LoginService(mockLoginRepo, mockContextRepo) {
+    val testDefaultService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
       override val loginStore: LoginRepo = mockLoginStore
       override val contextStore: ContextRepo = mockContextStore
+      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
     }
 
-    val testService = new LoginService(mockLoginRepo, mockContextRepo) {
+    val testService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
       override val loginStore: LoginRepo = mockLoginStore
       override val contextStore: ContextRepo = mockContextStore
-      override private[services] def processAuthContext(acc: UserAccount) = Future.successful(Some(testContext))
+      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
+      override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(Some(testContext))
     }
 
-    val testServiceFail = new LoginService(mockLoginRepo, mockContextRepo) {
+    val testServiceFail = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
       override val loginStore: LoginRepo = mockLoginStore
       override val contextStore: ContextRepo = mockContextStore
-      override private[services] def processAuthContext(acc: UserAccount) = Future.successful(None)
+      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
+      override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(None)
     }
   }
 
@@ -76,7 +89,7 @@ class LoginServiceSpec extends CJWWSpec {
     "return an AuthContext" when {
       "the user has been successfully validated" in new Setup {
         when(mockLoginStore.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
-          .thenReturn(Future.successful(testUser))
+          .thenReturn(Future.successful(Some(testUser)))
 
         val result = await(testService.login(testCredentials))
         result mustBe Some(testContext)
@@ -86,7 +99,7 @@ class LoginServiceSpec extends CJWWSpec {
     "return None" when {
       "there was a problem caching the AuthContextDetail" in new Setup {
         when(mockLoginStore.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
-          .thenReturn(Future.successful(testUser))
+          .thenReturn(Future.successful(Some(testUser)))
 
         val result = await(testServiceFail.login(testCredentials))
         result mustBe None
@@ -112,7 +125,7 @@ class LoginServiceSpec extends CJWWSpec {
         when(mockContextStore.cacheContext(ArgumentMatchers.any()))
           .thenReturn(Future.successful(MongoSuccessCreate))
 
-        val result = await(testDefaultService.processAuthContext(testUser))
+        val result = await(testDefaultService.processUserAuthContext(testUser))
         result.get.user.userId mustBe "testUserId"
       }
     }
@@ -122,7 +135,7 @@ class LoginServiceSpec extends CJWWSpec {
         when(mockContextStore.cacheContext(ArgumentMatchers.any()))
           .thenReturn(Future.successful(MongoFailedCreate))
 
-        val result = await(testDefaultService.processAuthContext(testUser))
+        val result = await(testDefaultService.processUserAuthContext(testUser))
         result mustBe None
       }
     }
