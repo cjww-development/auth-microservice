@@ -36,11 +36,11 @@ lazy val root = (project in file("."))
 PlayKeys.devSettings := Seq("play.server.http.port" -> "8601")
 
 val cjwwDep: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "data-security_2.11" % "0.8.0",
-  "com.cjww-dev.libs" % "logging_2.11" % "0.4.0",
-  "com.cjww-dev.libs" % "reactive-mongo_2.11" % "1.7.0",
-  "com.cjww-dev.libs" % "bootstrapper_2.11" % "0.8.0",
-  "com.cjww-dev.libs" % "backend-auth_2.11" % "0.11.0"
+  "com.cjww-dev.libs" % "data-security_2.11" % "0.10.0",
+  "com.cjww-dev.libs" % "logging_2.11" % "0.5.0",
+  "com.cjww-dev.libs" % "reactive-mongo_2.11" % "1.12.0",
+  "com.cjww-dev.libs" % "bootstrapper_2.11" % "1.4.2",
+  "com.cjww-dev.libs" % "backend-auth_2.11" % "0.14.0"
 )
 
 val testDep: Seq[ModuleID] = Seq(
