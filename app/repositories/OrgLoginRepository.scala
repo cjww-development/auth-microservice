@@ -22,8 +22,8 @@ import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class OrgLoginRepository extends MongoConnector {
   val store = new OrgLoginRepo(db)

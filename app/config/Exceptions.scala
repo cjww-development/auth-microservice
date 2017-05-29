@@ -15,9 +15,7 @@
 // limitations under the License.
 package config
 
-import scala.util.control.NoStackTrace
-
 object Exceptions {
-  class AccountNotFoundException(msg: String) extends NoStackTrace
-  class AuthContextNotFoundException(msg: String) extends NoStackTrace
+  class AccountNotFoundException(msg: String) extends Exception
+  class AuthContextNotFoundException(msg: String) extends Exception
 }

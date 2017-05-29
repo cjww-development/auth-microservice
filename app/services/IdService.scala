@@ -22,4 +22,6 @@ trait IdService {
   def generateDiagnosticsId : String = s"diag-${UUID.randomUUID()}"
   def generateDeversityId : String = s"deversity-${UUID.randomUUID()}"
   def generateContextId : String = s"context-${UUID.randomUUID()}"
+
+  def generateOrgUserId: String = s"org-user-${UUID.randomUUID()}"
 }

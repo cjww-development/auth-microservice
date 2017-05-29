@@ -18,12 +18,13 @@ package services
 import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import com.google.inject.{Inject, Singleton}
-import config.Exceptions.{AccountNotFoundException, AuthContextNotFoundException}
+import config.Exceptions.AuthContextNotFoundException
 import models.{Login, OrgAccount, UserAccount}
+import org.joda.time.DateTime
 import repositories._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class LoginService @Inject()(loginRepository: LoginRepository,
@@ -79,20 +80,22 @@ class LoginService @Inject()(loginRepository: LoginRepository,
 
     AuthContext(
       contextId        = generateContextId,
-      user             = User(acc.userId.get, Some(acc.firstName), Some(acc.lastName), None, INDIVIDUAL, role),
-      basicDetailsUri  = s"/account/${acc.userId.get}/basic-details",
-      enrolmentsUri    = s"/account/${acc.userId.get}/enrolments",
-      settingsUri      = s"/account/${acc.userId.get}/settings"
+      user             = User(acc.userId, Some(acc.firstName), Some(acc.lastName), None, INDIVIDUAL, role),
+      basicDetailsUri  = s"/account/${acc.userId}/basic-details",
+      enrolmentsUri    = s"/account/${acc.userId}/enrolments",
+      settingsUri      = s"/account/${acc.userId}/settings",
+      createdAt        = DateTime.now
     )
   }
 
   def generateOrgAuthContext(acc: OrgAccount): AuthContext = {
     AuthContext(
       contextId = generateContextId,
-      user = User(acc.orgId.get, None, None, Some(acc.orgName), ORGANISATION, None),
-      basicDetailsUri  = s"/account/${acc.orgId.get}/basic-details",
-      enrolmentsUri    = s"/account/${acc.orgId.get}/enrolments",
-      settingsUri      = s"/account/${acc.orgId.get}/settings"
+      user = User(acc.orgId, None, None, Some(acc.orgName), ORGANISATION, None),
+      basicDetailsUri  = s"/account/${acc.orgId}/basic-details",
+      enrolmentsUri    = s"/account/${acc.orgId}/enrolments",
+      settingsUri      = s"/account/${acc.orgId}/settings",
+      createdAt        = DateTime.now
     )
   }
 }
