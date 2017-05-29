@@ -17,6 +17,7 @@ package utils
 
 import com.cjwwdev.auth.models.{AuthContext, User}
 import models.{OrgAccount, UserAccount}
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.{WS, WSRequest}
@@ -39,14 +40,14 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, 5.seconds)
 
   private val testAccount = UserAccount(
-    userId = Some("user-test-user-id"),
+    userId = "user-test-user-id",
     firstName = "testFirstName",
     lastName = "testLastName",
     userName = "testUserName",
     email = "test@email.com",
     password = "testPassword",
     deversityDetails = None,
-    metadata  = None,
+    createdAt  = DateTime.now,
     enrolments = None,
     settings = None
   )
@@ -63,20 +64,21 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
     ),
     basicDetailsUri = "/test/uri",
     enrolmentsUri = "/test/uri",
-    settingsUri = "/test/uri"
+    settingsUri = "/test/uri",
+    createdAt = DateTime.now
   )
 
   private val testOrgAccount = OrgAccount(
-    orgId = Some("org-test-org-id"),
+    orgId = "org-test-org-id",
     orgName = "testOrgName",
     initials = "TI",
     orgUserName = "testOrgUserName",
     location = "testLocation",
     orgEmail = "test@email.com",
-    credentialType = Some("organisation"),
+    credentialType = "organisation",
     password = "testPass",
-    None,
-    None
+    createdAt = DateTime.now,
+    settings = None
   )
 
   def beforeITest(): Unit = {

@@ -15,10 +15,15 @@
 // limitations under the License.
 package models
 
-import play.api.libs.json.Json
+import com.cjwwdev.json.JsonFormats
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class Login(username : String, password : String)
 
-object Login {
-  implicit val format = Json.format[Login]
+object Login extends JsonFormats[Login] {
+  override implicit val standardFormat: OFormat[Login] = (
+    (__ \ "username").format[String] and
+    (__ \ "password").format[String]
+  )(Login.apply, unlift(Login.unapply))
 }

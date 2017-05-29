@@ -19,6 +19,7 @@ import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import helpers.CJWWSpec
 import models._
+import org.joda.time.DateTime
 import repositories._
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers
@@ -38,7 +39,7 @@ class LoginServiceSpec extends CJWWSpec {
 
   val testCredentials = Login("testUser","testPass")
 
-  val testUser = UserAccount(Some("testUserId"),"testFirstName","testLastName","testUserName","test@email.com","testPass",None,None,None)
+  val testUser = UserAccount("testUserId","testFirstName","testLastName","testUserName","test@email.com","testPass",None,DateTime.now,None)
 
   private val testContext = AuthContext(
     contextId = "context-test-context-id",
@@ -52,7 +53,8 @@ class LoginServiceSpec extends CJWWSpec {
     ),
     basicDetailsUri = "/test/uri",
     enrolmentsUri = "/test/uri",
-    settingsUri = "/test/uri"
+    settingsUri = "/test/uri",
+    createdAt = DateTime.now
   )
 
   class Setup {

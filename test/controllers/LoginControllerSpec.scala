@@ -22,6 +22,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.LoginService
 import com.cjwwdev.security.encryption.DataSecurity
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers
 
@@ -33,7 +34,9 @@ class LoginControllerSpec extends CJWWSpec {
 
   val testCredentials = Login("testUserName","testPass")
 
-  val encTestCredentials = DataSecurity.encryptData[Login](testCredentials).get
+  val encTestCredentials = DataSecurity.encryptType[Login](testCredentials).get
+
+  final val now = new DateTime(DateTimeZone.UTC)
 
   private val testContext = AuthContext(
     contextId = "context-test-context-id",
@@ -47,10 +50,11 @@ class LoginControllerSpec extends CJWWSpec {
     ),
     basicDetailsUri = "/test/uri",
     enrolmentsUri = "/test/uri",
-    settingsUri = "/test/uri"
+    settingsUri = "/test/uri",
+    createdAt = now
   )
 
-  val encTestContext = DataSecurity.encryptData[AuthContext](testContext).get
+  val encTestContext = DataSecurity.encryptType[AuthContext](testContext).get
 
   class Setup {
     val testController = new LoginController(mockLoginService)
@@ -65,7 +69,7 @@ class LoginControllerSpec extends CJWWSpec {
         val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
         status(result) mustBe OK
         contentAsString(result) mustBe encTestContext
-        DataSecurity.decryptInto[AuthContext](contentAsString(result)).get mustBe testContext
+        DataSecurity.decryptIntoType[AuthContext](contentAsString(result)).get mustBe testContext
       }
     }
 

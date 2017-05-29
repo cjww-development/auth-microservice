@@ -27,7 +27,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
       "the user has been successfully validated" in {
         beforeITest()
 
-        val enc = DataSecurity.encryptData[Login](Login("testUserName", "testPassword")).get
+        val enc = DataSecurity.encryptType[Login](Login("testUserName", "testPassword")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
@@ -43,7 +43,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
     "return a FORBIDDEN" when {
       "the user has not been successfully validated" in {
-        val enc = DataSecurity.encryptData[Login](Login("testUserName", "testPassword")).get
+        val enc = DataSecurity.encryptType[Login](Login("testUserName", "testPassword")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
@@ -55,7 +55,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
       }
 
       "the request is not authorised" in {
-        val enc = DataSecurity.encryptData[Login](Login("testUserName", "testPassword")).get
+        val enc = DataSecurity.encryptType[Login](Login("testUserName", "testPassword")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             CONTENT_TYPE -> TEXT
@@ -72,7 +72,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
       "the user has been successfully validated" in {
         beforeITest()
 
-        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
+        val enc = DataSecurity.encryptType[Login](Login("testOrgUserName", "testPass")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
@@ -88,7 +88,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
     "return a FORBIDDEN" when {
       "the user has not been successfully validated" in {
-        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
+        val enc = DataSecurity.encryptType[Login](Login("testOrgUserName", "testPass")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
@@ -100,7 +100,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
       }
 
       "the request is not authorised" in {
-        val enc = DataSecurity.encryptData[Login](Login("testOrgUserName", "testPass")).get
+        val enc = DataSecurity.encryptType[Login](Login("testOrgUserName", "testPass")).get
         val request = client(s"$baseUrl/login/user?enc=$enc")
           .withHeaders(
             CONTENT_TYPE -> TEXT
