@@ -15,7 +15,5 @@
 // limitations under the License.
 package config
 
-object Exceptions {
-  class AccountNotFoundException(msg: String) extends Exception
-  class AuthContextNotFoundException(msg: String) extends Exception
-}
+class AccountNotFoundException(msg: String) extends Exception(msg: String)
+class AuthContextNotFoundException(msg: String) extends Exception(msg: String)

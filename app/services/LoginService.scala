@@ -18,7 +18,7 @@ package services
 import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
 import com.google.inject.{Inject, Singleton}
-import config.Exceptions.AuthContextNotFoundException
+import config.AuthContextNotFoundException
 import models.{Login, OrgAccount, UserAccount}
 import org.joda.time.DateTime
 import repositories._

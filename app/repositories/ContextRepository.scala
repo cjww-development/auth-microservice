@@ -20,7 +20,7 @@ import javax.inject.Singleton
 import com.cjwwdev.auth.models.AuthContext
 import com.cjwwdev.logging.Logger
 import com.cjwwdev.reactivemongo._
-import config.Exceptions.AuthContextNotFoundException
+import config.AuthContextNotFoundException
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument

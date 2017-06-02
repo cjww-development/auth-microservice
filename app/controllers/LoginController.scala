@@ -17,6 +17,7 @@ package controllers
 
 import com.cjwwdev.auth.actions.{Authorised, BaseAuth, NotAuthorised}
 import com.cjwwdev.auth.models.AuthContext
+import com.cjwwdev.logging.Logger
 import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.security.encryption.DataSecurity
 import com.google.inject.{Inject, Singleton}
