@@ -15,9 +15,9 @@
 // limitations under the License.
 package controllers
 
-import com.cjwwdev.auth.actions.{Authorised, BaseAuth, NotAuthorised}
+import com.cjwwdev.auth.actions.BaseAuth
 import com.cjwwdev.auth.models.AuthContext
-import com.cjwwdev.logging.Logger
+import com.cjwwdev.identifiers.IdentifierValidation
 import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.security.encryption.DataSecurity
 import com.google.inject.{Inject, Singleton}
@@ -26,32 +26,30 @@ import play.api.mvc.{Action, AnyContent, Controller}
 import services.LoginService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 @Singleton
-class LoginController @Inject()(loginService : LoginService) extends Controller with RequestParsers with BaseAuth {
+class LoginController @Inject()(loginService : LoginService) extends Controller with RequestParsers with BaseAuth with IdentifierValidation {
   def login(enc : String) : Action[AnyContent] = Action.async {
     implicit request =>
       openActionVerification {
-        case Authorised =>
-          decryptUrlIntoType[Login](enc)(Login.standardFormat) { creds =>
-            loginService.login(creds) map {
-              case Some(context) => Ok(DataSecurity.encryptType[AuthContext](context).get)
-              case None => Forbidden
-            }
+        decryptUrlIntoType[Login](enc)(Login.standardFormat) { creds =>
+          loginService.login(creds) map {
+            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context).get)
+            case None           => Forbidden
           }
-        case NotAuthorised => Future.successful(Forbidden)
+        }
       }
   }
 
   def getContext(contextId : String) : Action[AnyContent] = Action.async {
     implicit request =>
       openActionVerification {
-        case Authorised => loginService.getContext(contextId) map {
-          case Some(context) => Ok(DataSecurity.encryptType[AuthContext](context).get)
-          case None => NotFound
+        validateAs(CONTEXT, contextId) {
+          loginService.getContext(contextId) map {
+            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context).get)
+            case None           => NotFound
+          }
         }
-        case NotAuthorised => Future.successful(Forbidden)
       }
   }
 }

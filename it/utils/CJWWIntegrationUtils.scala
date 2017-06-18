@@ -15,6 +15,8 @@
 // limitations under the License.
 package utils
 
+import java.util.UUID
+
 import com.cjwwdev.auth.models.{AuthContext, User}
 import models.{OrgAccount, UserAccount}
 import org.joda.time.DateTime
@@ -35,12 +37,14 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
 
   val baseUrl = s"http://localhost:$port/auth"
 
+  val uuid: UUID = UUID.randomUUID
+
   def client(url: String): WSRequest = WS.url(url)
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, 5.seconds)
 
   private val testAccount = UserAccount(
-    userId = "user-test-user-id",
+    userId = s"user-$uuid",
     firstName = "testFirstName",
     lastName = "testLastName",
     userName = "testUserName",
@@ -53,7 +57,7 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   )
 
   private val testContext = AuthContext(
-    contextId = "context-test-context-id",
+    contextId = s"context-$uuid",
     user = User(
       userId = "user-test-user-id",
       firstName = Some("testFirstName"),
@@ -69,7 +73,7 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   )
 
   private val testOrgAccount = OrgAccount(
-    orgId = "org-test-org-id",
+    orgId = s"org-$uuid",
     orgName = "testOrgName",
     initials = "TI",
     orgUserName = "testOrgUserName",
