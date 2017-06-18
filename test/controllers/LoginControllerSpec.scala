@@ -15,6 +15,8 @@
 // limitations under the License.
 package controllers
 
+import java.util.UUID
+
 import com.cjwwdev.auth.models.{AuthContext, User}
 import helpers.CJWWSpec
 import models.Login
@@ -37,9 +39,10 @@ class LoginControllerSpec extends CJWWSpec {
   val encTestCredentials = DataSecurity.encryptType[Login](testCredentials).get
 
   final val now = new DateTime(DateTimeZone.UTC)
+  final val uuid = UUID.randomUUID
 
   private val testContext = AuthContext(
-    contextId = "context-test-context-id",
+    contextId = s"context-$uuid",
     user = User(
       userId = "user-test-user-id",
       firstName = Some("testFirstName"),
@@ -99,7 +102,7 @@ class LoginControllerSpec extends CJWWSpec {
       when(mockLoginService.getContext(ArgumentMatchers.any()))
         .thenReturn(Future.successful(Some(testContext)))
 
-      val result = testController.getContext("context-test-id-12345")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
+      val result = testController.getContext(s"context-$uuid")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
       status(result) mustBe OK
     }
 
@@ -107,7 +110,7 @@ class LoginControllerSpec extends CJWWSpec {
       when(mockLoginService.getContext(ArgumentMatchers.any()))
         .thenReturn(Future.successful(None))
 
-      val result = testController.getContext("context-test-id-12345")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
+      val result = testController.getContext(s"context-$uuid")(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
       status(result) mustBe NOT_FOUND
     }
 

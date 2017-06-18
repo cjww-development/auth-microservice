@@ -117,7 +117,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
       "a context has been found" in {
         beforeITest()
 
-        val request = client(s"$baseUrl/get-context/context-test-context-id")
+        val request = client(s"$baseUrl/get-context/context-$uuid")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
             CONTENT_TYPE -> TEXT
@@ -132,7 +132,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
     "return a NOT FOUND" when {
       "a context has not been found" in {
-        val request = client(s"$baseUrl/get-context/context-test-context-id")
+        val request = client(s"$baseUrl/get-context/context-$uuid")
           .withHeaders(
             "appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
             CONTENT_TYPE -> TEXT
@@ -145,7 +145,7 @@ class AuthMicroserviceISpec extends CJWWIntegrationUtils {
 
     "return a FORBIDDEN" when {
       "the request is not authorised" in {
-        val request = client(s"$baseUrl/get-context/context-test-context-id")
+        val request = client(s"$baseUrl/get-context/context-$uuid")
           .withHeaders(
             CONTENT_TYPE -> TEXT
           ).get()
