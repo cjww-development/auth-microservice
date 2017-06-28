@@ -29,13 +29,8 @@ import scala.concurrent.Future
 class LoginServiceSpec extends CJWWSpec {
 
   val mockLoginRepo = mock[LoginRepository]
-  val mockLoginStore = mock[LoginRepo]
-
   val mockOrgLoginRepo = mock[OrgLoginRepository]
-  val mockOrgLoginStore = mock[OrgLoginRepo]
-
   val mockContextRepo = mock[ContextRepository]
-  val mockContextStore = mock[ContextRepo]
 
   val testCredentials = Login("testUser","testPass")
 
@@ -59,38 +54,26 @@ class LoginServiceSpec extends CJWWSpec {
 
   class Setup {
 
-    val testDefaultService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
-      override val loginStore: LoginRepo = mockLoginStore
-      override val contextStore: ContextRepo = mockContextStore
-      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
-    }
+    val testDefaultService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo)
 
     val testService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
-      override val loginStore: LoginRepo = mockLoginStore
-      override val contextStore: ContextRepo = mockContextStore
-      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
       override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(Some(testContext))
     }
 
     val testServiceFail = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
-      override val loginStore: LoginRepo = mockLoginStore
-      override val contextStore: ContextRepo = mockContextStore
-      override val orgLoginStore: OrgLoginRepo = mockOrgLoginStore
       override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(None)
     }
   }
 
   before(
     reset(mockLoginRepo),
-    reset(mockLoginStore),
-    reset(mockContextRepo),
-    reset(mockContextStore)
+    reset(mockContextRepo)
   )
 
   "login" should {
     "return an AuthContext" when {
       "the user has been successfully validated" in new Setup {
-        when(mockLoginStore.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
+        when(mockLoginRepo.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
           .thenReturn(Future.successful(Some(testUser)))
 
         val result = await(testService.login(testCredentials))
@@ -100,7 +83,7 @@ class LoginServiceSpec extends CJWWSpec {
 
     "return None" when {
       "there was a problem caching the AuthContextDetail" in new Setup {
-        when(mockLoginStore.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
+        when(mockLoginRepo.validateIndividualUser(ArgumentMatchers.eq(testCredentials)))
           .thenReturn(Future.successful(Some(testUser)))
 
         val result = await(testServiceFail.login(testCredentials))
@@ -112,7 +95,7 @@ class LoginServiceSpec extends CJWWSpec {
   "getContext" should {
     "return an auth context" when {
       "a matching context is found" in new Setup {
-        when(mockContextStore.fetchContext(ArgumentMatchers.any()))
+        when(mockContextRepo.fetchContext(ArgumentMatchers.any()))
           .thenReturn(Future.successful(testContext))
 
         val result = await(testService.getContext("testUserId"))
@@ -124,7 +107,7 @@ class LoginServiceSpec extends CJWWSpec {
   "processAuthContext" should {
     "return an auth context" when {
       "one has been generated and cached" in new Setup {
-        when(mockContextStore.cacheContext(ArgumentMatchers.any()))
+        when(mockContextRepo.cacheContext(ArgumentMatchers.any()))
           .thenReturn(Future.successful(MongoSuccessCreate))
 
         val result = await(testDefaultService.processUserAuthContext(testUser))
@@ -134,7 +117,7 @@ class LoginServiceSpec extends CJWWSpec {
 
     "return none" when {
       "one has been generated but there was a problem caching" in new Setup {
-        when(mockContextStore.cacheContext(ArgumentMatchers.any()))
+        when(mockContextRepo.cacheContext(ArgumentMatchers.any()))
           .thenReturn(Future.successful(MongoFailedCreate))
 
         val result = await(testDefaultService.processUserAuthContext(testUser))

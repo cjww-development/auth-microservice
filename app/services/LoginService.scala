@@ -31,17 +31,13 @@ class LoginService @Inject()(loginRepository: LoginRepository,
                              orgLoginRepository: OrgLoginRepository,
                              contextRepository: ContextRepository) extends IdService {
 
-  val loginStore: LoginRepo       = loginRepository.store
-  val orgLoginStore: OrgLoginRepo = orgLoginRepository.store
-  val contextStore: ContextRepo   = contextRepository.store
-
   private val INDIVIDUAL = "individual"
   private val ORGANISATION = "organisation"
 
   def login(credentials : Login) : Future[Option[AuthContext]] = {
-    loginStore.validateIndividualUser(credentials) flatMap {
+    loginRepository.validateIndividualUser(credentials) flatMap {
       case Some(acc)  => processUserAuthContext(acc)
-      case None       => orgLoginStore.validateOrganisationUser(credentials) flatMap {
+      case None       => orgLoginRepository.validateOrganisationUser(credentials) flatMap {
         case Some(acc)  => processOrgAuthContext(acc)
         case None       => Future.successful(None)
       }
@@ -49,7 +45,7 @@ class LoginService @Inject()(loginRepository: LoginRepository,
   }
 
   def getContext(id : String) : Future[Option[AuthContext]] = {
-    contextStore.fetchContext(id) map {
+    contextRepository.fetchContext(id) map {
       context => Some(context)
     } recover {
       case _: AuthContextNotFoundException => None
@@ -58,7 +54,7 @@ class LoginService @Inject()(loginRepository: LoginRepository,
 
   private[services] def processUserAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
     val generatedAuthContext = generateUserAuthContext(acc)
-    contextStore.cacheContext(generatedAuthContext) map {
+    contextRepository.cacheContext(generatedAuthContext) map {
       case MongoSuccessCreate   => Some(generatedAuthContext)
       case MongoFailedCreate    => None
     }
@@ -66,7 +62,7 @@ class LoginService @Inject()(loginRepository: LoginRepository,
 
   private[services] def processOrgAuthContext(acc: OrgAccount): Future[Option[AuthContext]] = {
     val generatedAuthContext = generateOrgAuthContext(acc)
-    contextStore.cacheContext(generatedAuthContext) map {
+    contextRepository.cacheContext(generatedAuthContext) map {
       case MongoSuccessCreate   => Some(generatedAuthContext)
       case MongoFailedCreate    => None
     }

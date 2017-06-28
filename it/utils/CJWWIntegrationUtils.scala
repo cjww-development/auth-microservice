@@ -86,14 +86,14 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   )
 
   def beforeITest(): Unit = {
-    await(loginRepo.store.collection.insert(testAccount))
-    await(contextRepo.store.collection.insert(testContext))
-    await(orgLoginRepo.store.collection.insert(testOrgAccount))
+    await(loginRepo.collection.flatMap(_.insert(testAccount)))
+    await(contextRepo.collection.flatMap(_.insert(testContext)))
+    await(orgLoginRepo.collection.flatMap(_.insert(testOrgAccount)))
   }
 
   def afterITest(): Unit = {
-    await(loginRepo.store.collection.drop(failIfNotFound = false))
-    await(contextRepo.store.collection.drop(failIfNotFound = false))
-    await(orgLoginRepo.store.collection.drop(failIfNotFound = false))
+    await(loginRepo.collection.flatMap(_.drop(failIfNotFound = false)))
+    await(contextRepo.collection.flatMap(_.drop(failIfNotFound = false)))
+    await(orgLoginRepo.collection.flatMap(_.drop(failIfNotFound = false)))
   }
 }

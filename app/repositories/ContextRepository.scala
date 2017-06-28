@@ -15,26 +15,21 @@
 // limitations under the License.
 package repositories
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 
 import com.cjwwdev.auth.models.AuthContext
 import com.cjwwdev.logging.Logger
 import com.cjwwdev.reactivemongo._
 import config.AuthContextNotFoundException
-import reactivemongo.api.DB
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ContextRepository extends MongoConnector {
-  val store = new ContextRepo(db)
-}
-
-class ContextRepo(db: () => DB) extends MongoRepository("auth", db) {
+class ContextRepository @Inject()() extends MongoRepository("auth") {
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -48,21 +43,25 @@ class ContextRepo(db: () => DB) extends MongoRepository("auth", db) {
   private def contextIdSelector(contextId: String) = BSONDocument("contextId" -> contextId)
 
   def cacheContext(context: AuthContext) : Future[MongoCreateResponse] = {
-    collection.insert[AuthContext](context) map { writeResult =>
-      if(writeResult.ok) {
-        Logger.info(s"[ContextRepo] - [cacheContext] context ${context.contextId} has been created")
-        MongoSuccessCreate
-      } else {
-        Logger.error(s"[ContextRepo] - [cacheContext] context ${context.contextId} has not created")
-        MongoFailedCreate
+    collection flatMap {
+      _.insert[AuthContext](context) map { wr =>
+        if(wr.ok) {
+          Logger.info(s"[ContextRepo] - [cacheContext] context ${context.contextId} has been created")
+          MongoSuccessCreate
+        } else {
+          Logger.error(s"[ContextRepo] - [cacheContext] context ${context.contextId} has not created")
+          MongoFailedCreate
+        }
       }
     }
   }
 
   def fetchContext(contextId : String) : Future[AuthContext] = {
-    collection.find(contextIdSelector(contextId)).one[AuthContext] map {
-      case Some(context) => context
-      case None => throw new AuthContextNotFoundException(s"AuthContext not found for context id $contextId")
+    collection flatMap {
+      _.find(contextIdSelector(contextId)).one[AuthContext] map {
+        case Some(context) => context
+        case None          => throw new AuthContextNotFoundException(s"AuthContext not found for context id $contextId")
+      }
     }
   }
 }
