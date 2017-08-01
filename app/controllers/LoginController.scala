@@ -34,7 +34,7 @@ class LoginController @Inject()(loginService : LoginService) extends Controller 
       openActionVerification {
         decryptUrlIntoType[Login](enc)(Login.standardFormat) { creds =>
           loginService.login(creds) map {
-            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context).get)
+            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
             case None           => Forbidden
           }
         }
@@ -46,7 +46,7 @@ class LoginController @Inject()(loginService : LoginService) extends Controller 
       openActionVerification {
         validateAs(CONTEXT, contextId) {
           loginService.getContext(contextId) map {
-            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context).get)
+            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
             case None           => NotFound
           }
         }

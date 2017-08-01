@@ -15,7 +15,7 @@
 // limitations under the License.
 package config
 
-import com.cjwwdev.bootstrap.config.BaseConfiguration
+import com.cjwwdev.config.BaseConfiguration
 
 trait ApplicationConfiguration extends BaseConfiguration {
   val ORG_ACCOUNTS            = "org-accounts"

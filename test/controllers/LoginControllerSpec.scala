@@ -27,6 +27,7 @@ import com.cjwwdev.security.encryption.DataSecurity
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers
+import play.api.libs.json.JsSuccess
 
 import scala.concurrent.Future
 
@@ -36,7 +37,7 @@ class LoginControllerSpec extends CJWWSpec {
 
   val testCredentials = Login("testUserName","testPass")
 
-  val encTestCredentials = DataSecurity.encryptType[Login](testCredentials).get
+  val encTestCredentials = DataSecurity.encryptType[Login](testCredentials)
 
   final val now = new DateTime(DateTimeZone.UTC)
   final val uuid = UUID.randomUUID
@@ -57,7 +58,7 @@ class LoginControllerSpec extends CJWWSpec {
     createdAt = now
   )
 
-  val encTestContext = DataSecurity.encryptType[AuthContext](testContext).get
+  val encTestContext = DataSecurity.encryptType[AuthContext](testContext)
 
   class Setup {
     val testController = new LoginController(mockLoginService)
@@ -72,7 +73,7 @@ class LoginControllerSpec extends CJWWSpec {
         val result = testController.login(encTestCredentials)(FakeRequest().withHeaders("appId" -> AUTH_SERVICE_ID))
         status(result) mustBe OK
         contentAsString(result) mustBe encTestContext
-        DataSecurity.decryptIntoType[AuthContext](contentAsString(result)).get mustBe testContext
+        DataSecurity.decryptIntoType[AuthContext](contentAsString(result)) mustBe JsSuccess(testContext)
       }
     }
 

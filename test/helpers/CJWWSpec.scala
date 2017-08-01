@@ -22,7 +22,7 @@ import config.ApplicationConfiguration
 import mocks.MongoMocks
 import org.scalatest.{BeforeAndAfter, TestSuite}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.{Await, Awaitable}
@@ -34,7 +34,6 @@ trait CJWWSpec
     with MongoMocks
     with ApplicationConfiguration
     with BeforeAndAfter
-    with OneAppPerSuite
     with TestSuite {
 
   implicit val system = ActorSystem()

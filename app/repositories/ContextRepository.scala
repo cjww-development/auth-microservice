@@ -18,9 +18,9 @@ package repositories
 import javax.inject.{Inject, Singleton}
 
 import com.cjwwdev.auth.models.AuthContext
-import com.cjwwdev.logging.Logger
 import com.cjwwdev.reactivemongo._
 import config.AuthContextNotFoundException
+import play.api.Logger
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -29,7 +29,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ContextRepository @Inject()() extends MongoRepository("auth") {
+class ContextRepository @Inject()() extends MongoDatabase("auth") {
 
   override def indexes: Seq[Index] = Seq(
     Index(

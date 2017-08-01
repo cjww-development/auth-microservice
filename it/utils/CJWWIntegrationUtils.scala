@@ -22,7 +22,7 @@ import models.{OrgAccount, UserAccount}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.libs.ws.{WS, WSRequest}
+import play.api.libs.ws.{WS, WSClient, WSRequest}
 import repositories._
 
 import scala.concurrent.{Await, Awaitable}
@@ -39,7 +39,9 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
 
   val uuid: UUID = UUID.randomUUID
 
-  def client(url: String): WSRequest = WS.url(url)
+  lazy val ws = app.injector.instanceOf(classOf[WSClient])
+
+  def client(url: String): WSRequest = ws.url(url)
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, 5.seconds)
 

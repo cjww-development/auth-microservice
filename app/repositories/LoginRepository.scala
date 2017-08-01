@@ -17,7 +17,7 @@ package repositories
 
 import javax.inject.{Inject, Singleton}
 
-import com.cjwwdev.reactivemongo._
+import com.cjwwdev.reactivemongo.MongoDatabase
 import models.{Login, UserAccount}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class LoginRepository @Inject()() extends MongoRepository("user-accounts") {
+class LoginRepository @Inject()() extends MongoDatabase("user-accounts") {
   def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
     val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
     collection flatMap {
