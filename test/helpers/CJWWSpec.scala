@@ -18,12 +18,13 @@ package helpers
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import config.ApplicationConfiguration
+import com.cjwwdev.config.ConfigurationLoader
 import mocks.MongoMocks
 import org.scalatest.{BeforeAndAfter, TestSuite}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.ws.ahc.AhcWSClient
+import services.LoginService
 
 import scala.concurrent.{Await, Awaitable}
 import scala.concurrent.duration._
@@ -32,7 +33,6 @@ trait CJWWSpec
   extends PlaySpec
     with MockitoSugar
     with MongoMocks
-    with ApplicationConfiguration
     with BeforeAndAfter
     with TestSuite {
 
@@ -41,4 +41,9 @@ trait CJWWSpec
   val ws = AhcWSClient()
 
   def await[T](future : Awaitable[T]) : T = Await.result(future, 5.seconds)
+
+  val mockLoginService = mock[LoginService]
+  val mockConfig = mock[ConfigurationLoader]
+
+  val AUTH_SERVICE_ID = mockConfig.getApplicationId("auth-service")
 }

@@ -22,7 +22,6 @@ import helpers.CJWWSpec
 import models.Login
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.LoginService
 import com.cjwwdev.security.encryption.DataSecurity
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
@@ -32,8 +31,6 @@ import play.api.libs.json.JsSuccess
 import scala.concurrent.Future
 
 class LoginControllerSpec extends CJWWSpec {
-
-  val mockLoginService = mock[LoginService]
 
   val testCredentials = Login("testUserName","testPass")
 
@@ -61,7 +58,7 @@ class LoginControllerSpec extends CJWWSpec {
   val encTestContext = DataSecurity.encryptType[AuthContext](testContext)
 
   class Setup {
-    val testController = new LoginController(mockLoginService)
+    val testController = new LoginController(mockLoginService, mockConfig)
   }
 
   "login" should {

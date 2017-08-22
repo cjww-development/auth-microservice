@@ -17,6 +17,7 @@ package controllers
 
 import com.cjwwdev.auth.actions.BaseAuth
 import com.cjwwdev.auth.models.AuthContext
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.identifiers.IdentifierValidation
 import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.security.encryption.DataSecurity
@@ -28,11 +29,12 @@ import services.LoginService
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginController @Inject()(loginService : LoginService) extends Controller with RequestParsers with BaseAuth with IdentifierValidation {
+class LoginController @Inject()(loginService : LoginService,
+                                val config: ConfigurationLoader) extends Controller with RequestParsers with BaseAuth with IdentifierValidation {
   def login(enc : String) : Action[AnyContent] = Action.async {
     implicit request =>
       openActionVerification {
-        decryptUrlIntoType[Login](enc)(Login.standardFormat) { creds =>
+        withEncryptedUrlIntoType[Login](enc, Login.standardFormat) { creds =>
           loginService.login(creds) map {
             case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
             case None           => Forbidden
