@@ -39,7 +39,7 @@ class LoginServiceSpec extends CJWWSpec {
   private val testContext = AuthContext(
     contextId = "context-test-context-id",
     user = User(
-      userId = "user-test-user-id",
+      id = "user-test-user-id",
       firstName = Some("testFirstName"),
       lastName = Some("testLastName"),
       orgName = None,
@@ -111,7 +111,7 @@ class LoginServiceSpec extends CJWWSpec {
           .thenReturn(Future.successful(MongoSuccessCreate))
 
         val result = await(testDefaultService.processUserAuthContext(testUser))
-        result.get.user.userId mustBe "testUserId"
+        result.get.user.id mustBe "testUserId"
       }
     }
 

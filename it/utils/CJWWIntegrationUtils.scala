@@ -61,7 +61,7 @@ trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
   private val testContext = AuthContext(
     contextId = s"context-$uuid",
     user = User(
-      userId = "user-test-user-id",
+      id = "user-test-user-id",
       firstName = Some("testFirstName"),
       lastName = Some("testLastName"),
       orgName = None,
