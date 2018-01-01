@@ -31,9 +31,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait CJWWIntegrationUtils extends PlaySpec with GuiceOneServerPerSuite {
 
-  val loginRepo = new LoginRepository
-  val contextRepo = new ContextRepository
-  val orgLoginRepo = new OrgLoginRepository
+  val loginRepo    = new LoginRepositoryImpl
+  val contextRepo  = new ContextRepositoryImpl
+  val orgLoginRepo = new OrgLoginRepositoryImpl
 
   val baseUrl = s"http://localhost:$port/auth"
 

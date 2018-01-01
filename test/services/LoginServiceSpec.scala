@@ -28,10 +28,6 @@ import scala.concurrent.Future
 
 class LoginServiceSpec extends CJWWSpec {
 
-  val mockLoginRepo = mock[LoginRepository]
-  val mockOrgLoginRepo = mock[OrgLoginRepository]
-  val mockContextRepo = mock[ContextRepository]
-
   val testCredentials = Login("testUser","testPass")
 
   val testUser = UserAccount("testUserId","testFirstName","testLastName","testUserName","test@email.com","testPass",None,DateTime.now,None)
@@ -54,13 +50,25 @@ class LoginServiceSpec extends CJWWSpec {
 
   class Setup {
 
-    val testDefaultService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo)
+    val testDefaultService = new LoginService {
+      override val loginRepository    = mockLoginRepo
+      override val orgLoginRepository = mockOrgLoginRepo
+      override val contextRepository  = mockContextRepo
+    }
 
-    val testService = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
+    val testService = new LoginService {
+      override val loginRepository    = mockLoginRepo
+      override val orgLoginRepository = mockOrgLoginRepo
+      override val contextRepository  = mockContextRepo
+
       override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(Some(testContext))
     }
 
-    val testServiceFail = new LoginService(mockLoginRepo, mockOrgLoginRepo, mockContextRepo) {
+    val testServiceFail = new LoginService {
+      override val loginRepository    = mockLoginRepo
+      override val orgLoginRepository = mockOrgLoginRepo
+      override val contextRepository  = mockContextRepo
+
       override private[services] def processUserAuthContext(acc: UserAccount) = Future.successful(None)
     }
   }

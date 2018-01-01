@@ -13,7 +13,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+
+package common
+
+import javax.inject.Inject
+
+import com.cjwwdev.auth.actions.BaseAuth
+import com.cjwwdev.filters.RequestLoggingFilter
+import com.cjwwdev.identifiers.IdentifierValidation
+import com.cjwwdev.request.RequestParsers
+import com.kenshoo.play.metrics.MetricsFilter
+import play.api.http.DefaultHttpFilters
+import play.api.mvc.Controller
+
+trait BackendController
+  extends Controller
+    with RequestParsers
+    with BaseAuth
+    with IdentifierValidation
+
+class EnabledFilters @Inject()(loggingFilter: RequestLoggingFilter, metricsFilter: MetricsFilter)
+  extends DefaultHttpFilters(loggingFilter, metricsFilter)
 
 class AccountNotFoundException(msg: String) extends Exception(msg: String)
 class AuthContextNotFoundException(msg: String) extends Exception(msg: String)

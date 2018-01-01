@@ -17,8 +17,8 @@ package services
 
 import com.cjwwdev.auth.models.{AuthContext, User}
 import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
-import com.google.inject.{Inject, Singleton}
-import config.AuthContextNotFoundException
+import com.google.inject.Inject
+import common.AuthContextNotFoundException
 import models.{Login, OrgAccount, UserAccount}
 import org.joda.time.DateTime
 import repositories._
@@ -26,12 +26,16 @@ import repositories._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class LoginService @Inject()(loginRepository: LoginRepository,
-                             orgLoginRepository: OrgLoginRepository,
-                             contextRepository: ContextRepository) extends IdService {
+class LoginServiceImpl @Inject()(val loginRepository: LoginRepository,
+                                 val orgLoginRepository: OrgLoginRepository,
+                                 val contextRepository: ContextRepository) extends LoginService
 
-  private val INDIVIDUAL = "individual"
+trait LoginService extends IdService {
+  val loginRepository: LoginRepository
+  val orgLoginRepository: OrgLoginRepository
+  val contextRepository: ContextRepository
+
+  private val INDIVIDUAL   = "individual"
   private val ORGANISATION = "organisation"
 
   def login(credentials : Login) : Future[Option[AuthContext]] = {
@@ -84,14 +88,12 @@ class LoginService @Inject()(loginRepository: LoginRepository,
     )
   }
 
-  def generateOrgAuthContext(acc: OrgAccount): AuthContext = {
-    AuthContext(
-      contextId = generateContextId,
-      user = User(acc.orgId, None, None, Some(acc.orgName), ORGANISATION, None),
-      basicDetailsUri  = s"/account/${acc.orgId}/basic-details",
-      enrolmentsUri    = s"/account/${acc.orgId}/enrolments",
-      settingsUri      = s"/account/${acc.orgId}/settings",
-      createdAt        = DateTime.now
-    )
-  }
+  def generateOrgAuthContext(acc: OrgAccount): AuthContext = AuthContext(
+    contextId        = generateContextId,
+    user             = User(acc.orgId, None, None, Some(acc.orgName), ORGANISATION, None),
+    basicDetailsUri  = s"/account/${acc.orgId}/basic-details",
+    enrolmentsUri    = s"/account/${acc.orgId}/enrolments",
+    settingsUri      = s"/account/${acc.orgId}/settings",
+    createdAt        = DateTime.now
+  )
 }

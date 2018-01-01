@@ -25,11 +25,11 @@ class IdServiceSpec extends PlaySpec {
 
   "generateHubId" should {
     "return a string that contains 'hub' and is exactly 40 characters long" in new Setup {
-      val resultOne = TestService.generateHubId
-      val resultTwo = TestService.generateHubId
+      val resultOne   = TestService.generateHubId
+      val resultTwo   = TestService.generateHubId
       val resultThree = TestService.generateHubId
-      val resultFour = TestService.generateHubId
-      val resultFive = TestService.generateHubId
+      val resultFour  = TestService.generateHubId
+      val resultFive  = TestService.generateHubId
 
       assert(resultOne.contains("hub"))
       assert(resultTwo.contains("hub"))
@@ -47,11 +47,11 @@ class IdServiceSpec extends PlaySpec {
 
   "generateDiagnosticsId" should {
     "return a string that contains 'diag' and is exactly 41 characters long" in new Setup {
-      val resultOne = TestService.generateDiagnosticsId
-      val resultTwo = TestService.generateDiagnosticsId
+      val resultOne   = TestService.generateDiagnosticsId
+      val resultTwo   = TestService.generateDiagnosticsId
       val resultThree = TestService.generateDiagnosticsId
-      val resultFour = TestService.generateDiagnosticsId
-      val resultFive = TestService.generateDiagnosticsId
+      val resultFour  = TestService.generateDiagnosticsId
+      val resultFive  = TestService.generateDiagnosticsId
 
       assert(resultOne.contains("diag"))
       assert(resultTwo.contains("diag"))
@@ -69,11 +69,11 @@ class IdServiceSpec extends PlaySpec {
 
   "generateDeversityId" should {
     "return a string that contains 'deversity' and is exactly 46 characters long" in new Setup {
-      val resultOne = TestService.generateDeversityId
-      val resultTwo = TestService.generateDeversityId
+      val resultOne   = TestService.generateDeversityId
+      val resultTwo   = TestService.generateDeversityId
       val resultThree = TestService.generateDeversityId
-      val resultFour = TestService.generateDeversityId
-      val resultFive = TestService.generateDeversityId
+      val resultFour  = TestService.generateDeversityId
+      val resultFive  = TestService.generateDeversityId
 
       assert(resultOne.contains("deversity"))
       assert(resultTwo.contains("deversity"))

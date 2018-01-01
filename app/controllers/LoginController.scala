@@ -15,43 +15,40 @@
 // limitations under the License.
 package controllers
 
-import com.cjwwdev.auth.actions.BaseAuth
 import com.cjwwdev.auth.models.AuthContext
-import com.cjwwdev.config.ConfigurationLoader
-import com.cjwwdev.identifiers.IdentifierValidation
-import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.security.encryption.DataSecurity
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Inject
+import common.BackendController
 import models.Login
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{Action, AnyContent}
 import services.LoginService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class LoginController @Inject()(loginService : LoginService,
-                                val config: ConfigurationLoader) extends Controller with RequestParsers with BaseAuth with IdentifierValidation {
-  def login(enc : String) : Action[AnyContent] = Action.async {
-    implicit request =>
-      openActionVerification {
-        withEncryptedUrlIntoType[Login](enc, Login.standardFormat) { creds =>
-          loginService.login(creds) map {
-            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
-            case None           => Forbidden
-          }
+class LoginControllerImpl @Inject()(val loginService : LoginService) extends LoginController
+
+trait LoginController extends BackendController {
+  val loginService: LoginService
+
+  def login(enc : String) : Action[AnyContent] = Action.async { implicit request =>
+    openActionVerification {
+      withEncryptedUrlIntoType[Login](enc, Login.standardFormat) { creds =>
+        loginService.login(creds) map {
+          case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
+          case None           => Forbidden
         }
       }
+    }
   }
 
-  def getContext(contextId : String) : Action[AnyContent] = Action.async {
-    implicit request =>
-      openActionVerification {
-        validateAs(CONTEXT, contextId) {
-          loginService.getContext(contextId) map {
-            case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
-            case None           => NotFound
-          }
+  def getContext(contextId : String) : Action[AnyContent] = Action.async { implicit request =>
+    openActionVerification {
+      validateAs(CONTEXT, contextId) {
+        loginService.getContext(contextId) map {
+          case Some(context)  => Ok(DataSecurity.encryptType[AuthContext](context))
+          case None           => NotFound
         }
       }
+    }
   }
 }

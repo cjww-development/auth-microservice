@@ -15,53 +15,49 @@
 // limitations under the License.
 package repositories
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.cjwwdev.auth.models.AuthContext
 import com.cjwwdev.reactivemongo._
-import config.AuthContextNotFoundException
-import play.api.Logger
+import common.AuthContextNotFoundException
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-@Singleton
-class ContextRepository @Inject()() extends MongoDatabase("auth") {
+class ContextRepositoryImpl @Inject extends ContextRepository
 
+trait ContextRepository extends MongoDatabase {
   override def indexes: Seq[Index] = Seq(
     Index(
-      key = Seq("contextId" -> IndexType.Ascending),
-      name = Some("ContextId"),
+      key    = Seq("contextId" -> IndexType.Ascending),
+      name   = Some("ContextId"),
       unique = true,
       sparse = false
     )
   )
 
-  private def contextIdSelector(contextId: String) = BSONDocument("contextId" -> contextId)
+  private val contextIdSelector: String => BSONDocument = contextId => BSONDocument("contextId" -> contextId)
 
   def cacheContext(context: AuthContext) : Future[MongoCreateResponse] = {
-    collection flatMap {
-      _.insert[AuthContext](context) map { wr =>
-        if(wr.ok) {
-          Logger.info(s"[ContextRepo] - [cacheContext] context ${context.contextId} has been created")
-          MongoSuccessCreate
-        } else {
-          Logger.error(s"[ContextRepo] - [cacheContext] context ${context.contextId} has not created")
-          MongoFailedCreate
-        }
-      }
+    for {
+      col <- collection
+      wr  <- col.insert[AuthContext](context)
+    } yield if(wr.ok) {
+      logger.info(s"[ContextRepo] - [cacheContext] context ${context.contextId} has been created")
+      MongoSuccessCreate
+    } else {
+      logger.error(s"[ContextRepo] - [cacheContext] context ${context.contextId} has not created")
+      MongoFailedCreate
     }
   }
 
   def fetchContext(contextId : String) : Future[AuthContext] = {
-    collection flatMap {
-      _.find(contextIdSelector(contextId)).one[AuthContext] map {
-        case Some(context) => context
-        case None          => throw new AuthContextNotFoundException(s"AuthContext not found for context id $contextId")
-      }
-    }
+    for {
+      col <- collection
+      res <- col.find(contextIdSelector(contextId)).one[AuthContext]
+    } yield res.getOrElse(throw new AuthContextNotFoundException(s"AuthContext not found for context id $contextId"))
   }
 }

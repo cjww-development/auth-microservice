@@ -15,7 +15,7 @@
 // limitations under the License.
 package repositories
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.cjwwdev.reactivemongo.MongoDatabase
 import models.{Login, UserAccount}
@@ -25,12 +25,14 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class LoginRepository @Inject()() extends MongoDatabase("user-accounts") {
+class LoginRepositoryImpl @Inject extends LoginRepository
+
+trait LoginRepository extends MongoDatabase {
+  private def query(userDetails: Login): BSONDocument = BSONDocument("userName" -> userDetails.username, "password" -> userDetails.password)
+
   def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
-    val query = BSONDocument("userName" -> userdetails.username, "password" -> userdetails.password)
     collection flatMap {
-      _.find(query).one[UserAccount]
+      _.find(query(userdetails)).one[UserAccount]
     }
   }
 }

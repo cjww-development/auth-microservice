@@ -18,17 +18,12 @@ import com.typesafe.config.ConfigFactory
 import scoverage.ScoverageKeys
 import scala.util.{Try, Success, Failure}
 
+val appName = "auth-microservice"
+
 val btVersion: String = Try(ConfigFactory.load.getString("version")) match {
   case Success(ver) => ver
   case Failure(_)   => "0.1.0"
 }
-
-name         := """auth-microservice"""
-version      := btVersion
-scalaVersion := "2.11.11"
-organization := "com.cjww-dev.backends"
-
-lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
 lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;config.*;utils.*;.*(AuthService|BuildInfo|Routes).*",
@@ -37,40 +32,27 @@ lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageHighlighting     := true
 )
 
-lazy val root = (project in file("."))
+lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala)
-  .settings(playSettings ++ scoverageSettings : _*)
+  .settings(scoverageSettings)
   .configs(IntegrationTest)
+  .settings(PlayKeys.playDefaultPort := 8601)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
-    parallelExecution in IntegrationTest := false)
-
-PlayKeys.devSettings := Seq("play.server.http.port" -> "8601")
-
-val cjwwDep: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "data-security_2.11"          % "2.8.0",
-  "com.cjww-dev.libs" % "reactive-mongo_2.11"         % "3.5.0",
-  "com.cjww-dev.libs" % "backend-auth_2.11"           % "2.10.0",
-  "com.cjww-dev.libs" % "application-utilities_2.11"  % "2.3.0"
-)
-
-val testDep: Seq[ModuleID] = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play"  % "2.0.1" % Test,
-  "org.mockito"             % "mockito-core"        % "2.10.0" % Test
-)
-
-libraryDependencies ++= cjwwDep
-libraryDependencies ++= testDep
-
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
-resolvers += "cjww-dev" at "http://dl.bintray.com/cjww-development/releases"
-
-herokuAppName in Compile := "cjww-auth-microservice"
-routesGenerator          := InjectedRoutesGenerator
-
-bintrayOrganization                  := Some("cjww-development")
-bintrayReleaseOnPublish in ThisBuild := false
-bintrayRepository                    := "releases"
-bintrayOmitLicense                   := true
+    version                                       :=  btVersion,
+    scalaVersion                                  :=  "2.11.12",
+    organization                                  :=  "com.cjww-dev.backends",
+    resolvers                                     ++= Seq(
+      "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+      "cjww-dev"       at "http://dl.bintray.com/cjww-development/releases"
+    ),
+    libraryDependencies                           ++= AppDependencies(),
+    herokuAppName in Compile                      :=  "cjww-auth-microservice",
+    bintrayOrganization                           :=  Some("cjww-development"),
+    bintrayReleaseOnPublish in ThisBuild          :=  false,
+    bintrayRepository                             :=  "releases",
+    bintrayOmitLicense                            :=  true,
+    Keys.fork in IntegrationTest                  :=  false,
+    unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    parallelExecution in IntegrationTest          :=  false
+  )

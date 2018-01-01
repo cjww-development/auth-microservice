@@ -16,7 +16,7 @@
 
 package repositories
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.cjwwdev.reactivemongo.MongoDatabase
 import models.{Login, OrgAccount}
@@ -26,12 +26,14 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class OrgLoginRepository @Inject()() extends MongoDatabase("org-accounts") {
+class OrgLoginRepositoryImpl @Inject()() extends OrgLoginRepository
+
+trait OrgLoginRepository extends MongoDatabase {
+  private def query(userDetails: Login): BSONDocument = BSONDocument("orgUserName" -> userDetails.username, "password" -> userDetails.password)
+
   def validateOrganisationUser(userDetails: Login): Future[Option[OrgAccount]] = {
-    val query = BSONDocument("orgUserName" -> userDetails.username, "password" -> userDetails.password)
     collection flatMap {
-      _.find(query).one[OrgAccount]
+      _.find(query(userDetails)).one[OrgAccount]
     }
   }
 }

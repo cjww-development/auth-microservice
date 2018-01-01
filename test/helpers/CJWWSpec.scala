@@ -24,6 +24,7 @@ import org.scalatest.{BeforeAndAfter, TestSuite}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.ws.ahc.AhcWSClient
+import repositories.{ContextRepository, LoginRepository, OrgLoginRepository}
 import services.LoginService
 
 import scala.concurrent.{Await, Awaitable}
@@ -34,7 +35,8 @@ trait CJWWSpec
     with MockitoSugar
     with MongoMocks
     with BeforeAndAfter
-    with TestSuite {
+    with TestSuite
+    with ConfigurationLoader {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -43,7 +45,10 @@ trait CJWWSpec
   def await[T](future : Awaitable[T]) : T = Await.result(future, 5.seconds)
 
   val mockLoginService = mock[LoginService]
-  val mockConfig = mock[ConfigurationLoader]
 
-  val AUTH_SERVICE_ID = mockConfig.getApplicationId("auth-service")
+  val mockLoginRepo = mock[LoginRepository]
+  val mockOrgLoginRepo = mock[OrgLoginRepository]
+  val mockContextRepo = mock[ContextRepository]
+
+  val AUTH_SERVICE_ID = getApplicationId("auth-service")
 }

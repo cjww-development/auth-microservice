@@ -42,23 +42,25 @@ class LoginControllerSpec extends CJWWSpec {
   private val testContext = AuthContext(
     contextId = s"context-$uuid",
     user = User(
-      id = "user-test-user-id",
-      firstName = Some("testFirstName"),
-      lastName = Some("testLastName"),
-      orgName = None,
-      "individual",
+      id             = "user-test-user-id",
+      firstName      = Some("testFirstName"),
+      lastName       = Some("testLastName"),
+      orgName        = None,
+      credentialType = "individual",
       None
     ),
     basicDetailsUri = "/test/uri",
-    enrolmentsUri = "/test/uri",
-    settingsUri = "/test/uri",
-    createdAt = now
+    enrolmentsUri   = "/test/uri",
+    settingsUri     = "/test/uri",
+    createdAt       = now
   )
 
   val encTestContext = DataSecurity.encryptType[AuthContext](testContext)
 
   class Setup {
-    val testController = new LoginController(mockLoginService, mockConfig)
+    val testController = new LoginController {
+      override val loginService = mockLoginService
+    }
   }
 
   "login" should {
