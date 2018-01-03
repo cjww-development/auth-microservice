@@ -19,6 +19,7 @@ package helpers
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.cjwwdev.config.ConfigurationLoader
+import com.typesafe.config.ConfigFactory
 import mocks.MongoMocks
 import org.scalatest.{BeforeAndAfter, TestSuite}
 import org.scalatest.mockito.MockitoSugar
@@ -35,8 +36,7 @@ trait CJWWSpec
     with MockitoSugar
     with MongoMocks
     with BeforeAndAfter
-    with TestSuite
-    with ConfigurationLoader {
+    with TestSuite {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -50,5 +50,5 @@ trait CJWWSpec
   val mockOrgLoginRepo = mock[OrgLoginRepository]
   val mockContextRepo = mock[ContextRepository]
 
-  val AUTH_SERVICE_ID = getApplicationId("auth-service")
+  val AUTH_SERVICE_ID = ConfigFactory.load.getString("microservice.external-services.auth-service.application-id")
 }

@@ -17,6 +17,7 @@ package repositories
 
 import javax.inject.Inject
 
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.reactivemongo.MongoDatabase
 import models.{Login, UserAccount}
 import reactivemongo.bson.BSONDocument
@@ -25,7 +26,7 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class LoginRepositoryImpl @Inject extends LoginRepository
+class LoginRepositoryImpl @Inject()(val configurationLoader: ConfigurationLoader) extends LoginRepository
 
 trait LoginRepository extends MongoDatabase {
   private def query(userDetails: Login): BSONDocument = BSONDocument("userName" -> userDetails.username, "password" -> userDetails.password)
