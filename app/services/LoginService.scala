@@ -1,26 +1,26 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package services
 
-import com.cjwwdev.auth.models.{AuthContext, User}
-import com.cjwwdev.reactivemongo.{MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.auth.models.CurrentUser
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import com.google.inject.Inject
-import common.AuthContextNotFoundException
+import common.CurrentUserNotFoundException
 import models.{Login, OrgAccount, UserAccount}
-import org.joda.time.DateTime
+import play.api.libs.json.{JsObject, Json}
 import repositories._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +38,7 @@ trait LoginService extends IdService {
   private val INDIVIDUAL   = "individual"
   private val ORGANISATION = "organisation"
 
-  def login(credentials : Login) : Future[Option[AuthContext]] = {
+  def login(credentials : Login) : Future[Option[CurrentUser]] = {
     loginRepository.validateIndividualUser(credentials) flatMap {
       case Some(acc)  => processUserAuthContext(acc)
       case None       => orgLoginRepository.validateOrganisationUser(credentials) flatMap {
@@ -48,52 +48,51 @@ trait LoginService extends IdService {
     }
   }
 
-  def getContext(id : String) : Future[Option[AuthContext]] = {
-    contextRepository.fetchContext(id) map {
-      context => Some(context)
+  def getContext(id : String) : Future[Option[CurrentUser]] = {
+    contextRepository.fetchCurrentUser(id) map {
+      Some(_)
     } recover {
-      case _: AuthContextNotFoundException => None
+      case _: CurrentUserNotFoundException => None
     }
   }
 
-  private[services] def processUserAuthContext(acc : UserAccount) : Future[Option[AuthContext]] = {
+  private[services] def processUserAuthContext(acc : UserAccount) : Future[Option[CurrentUser]] = {
     val generatedAuthContext = generateUserAuthContext(acc)
-    contextRepository.cacheContext(generatedAuthContext) map {
-      case MongoSuccessCreate   => Some(generatedAuthContext)
-      case MongoFailedCreate    => None
+    contextRepository.cacheCurrentUser(generatedAuthContext) map {
+      case MongoSuccessCreate => Some(generatedAuthContext)
+      case MongoFailedCreate  => None
     }
   }
 
-  private[services] def processOrgAuthContext(acc: OrgAccount): Future[Option[AuthContext]] = {
+  private[services] def processOrgAuthContext(acc: OrgAccount): Future[Option[CurrentUser]] = {
     val generatedAuthContext = generateOrgAuthContext(acc)
-    contextRepository.cacheContext(generatedAuthContext) map {
-      case MongoSuccessCreate   => Some(generatedAuthContext)
-      case MongoFailedCreate    => None
+    contextRepository.cacheCurrentUser(generatedAuthContext) map {
+      case MongoSuccessCreate => Some(generatedAuthContext)
+      case MongoFailedCreate  => None
     }
   }
 
-  def generateUserAuthContext(acc: UserAccount): AuthContext = {
-    val role = acc.deversityDetails match {
-      case Some(details)  => Some(details.role)
-      case _              => None
-    }
+  def generateUserAuthContext(acc: UserAccount): CurrentUser = CurrentUser(
+    contextId      = generateContextId,
+    id             = acc.userId,
+    orgDeversityId = None,
+    credentialType = INDIVIDUAL,
+    orgName        = None,
+    firstName      = Some(acc.firstName),
+    lastName       = Some(acc.lastName),
+    role           = acc.deversityDetails.map(_.role),
+    enrolments     = acc.enrolments.map(Json.toJson(_).as[JsObject])
+  )
 
-    AuthContext(
-      contextId        = generateContextId,
-      user             = User(acc.userId, Some(acc.firstName), Some(acc.lastName), None, INDIVIDUAL, role),
-      basicDetailsUri  = s"/account/${acc.userId}/basic-details",
-      enrolmentsUri    = s"/account/${acc.userId}/enrolments",
-      settingsUri      = s"/account/${acc.userId}/settings",
-      createdAt        = DateTime.now
-    )
-  }
-
-  def generateOrgAuthContext(acc: OrgAccount): AuthContext = AuthContext(
-    contextId        = generateContextId,
-    user             = User(acc.orgId, None, None, Some(acc.orgName), ORGANISATION, None),
-    basicDetailsUri  = s"/account/${acc.orgId}/basic-details",
-    enrolmentsUri    = s"/account/${acc.orgId}/enrolments",
-    settingsUri      = s"/account/${acc.orgId}/settings",
-    createdAt        = DateTime.now
+  def generateOrgAuthContext(acc: OrgAccount): CurrentUser = CurrentUser(
+    contextId      = generateContextId,
+    id             = acc.orgId,
+    orgDeversityId = Some(acc.deversityId),
+    credentialType = ORGANISATION,
+    orgName        = Some(acc.orgName),
+    firstName      = None,
+    lastName       = None,
+    role           = None,
+    enrolments     = None
   )
 }
