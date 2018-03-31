@@ -1,21 +1,21 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models
 
-import com.cjwwdev.json.JsonFormats
+import com.cjwwdev.json.TimeFormat
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -25,8 +25,8 @@ case class Enrolments(hubId : Option[String],
                       diagId : Option[String],
                       deversityId : Option[String])
 
-object Enrolments extends JsonFormats[Enrolments] {
-  override implicit val standardFormat: OFormat[Enrolments] = (
+object Enrolments {
+  implicit val standardFormat: OFormat[Enrolments] = (
     (__ \ "hubId").formatNullable[String] and
     (__ \ "diagId").formatNullable[String] and
     (__ \ "deversityId").formatNullable[String]
@@ -40,8 +40,8 @@ case class DeversityEnrolment(statusConfirmed: String,
                               room: Option[String],
                               teacher: Option[String])
 
-object DeversityEnrolment extends JsonFormats[DeversityEnrolment] {
-  override implicit val standardFormat: OFormat[DeversityEnrolment] = (
+object DeversityEnrolment {
+  implicit val standardFormat: OFormat[DeversityEnrolment] = (
     (__ \ "statusConfirmed").format[String] and
     (__ \ "schoolName").format[String] and
     (__ \ "role").format[String] and
@@ -62,8 +62,8 @@ case class UserAccount(userId : String,
                        enrolments: Option[Enrolments] = None,
                        settings : Option[Map[String, String]] = None)
 
-object UserAccount extends JsonFormats[UserAccount] with IdService {
-  override implicit val standardFormat: OFormat[UserAccount] = (
+object UserAccount extends IdService with TimeFormat {
+  implicit val standardFormat: OFormat[UserAccount] = (
     (__ \ "userId").format[String] and
     (__ \ "firstName").format[String] and
     (__ \ "lastName").format[String] and

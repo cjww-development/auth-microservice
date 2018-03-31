@@ -13,14 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package services
+
+package utils
 
 import java.util.UUID
 
-trait IdService {
-  def generateHubId : String          = s"hub-${UUID.randomUUID()}"
-  def generateDiagnosticsId : String  = s"diag-${UUID.randomUUID()}"
-  def generateDeversityId : String    = s"deversity-${UUID.randomUUID()}"
-  def generateContextId : String      = s"context-${UUID.randomUUID()}"
-  def generateOrgUserId: String       = s"org-user-${UUID.randomUUID()}"
+import org.joda.time.{DateTime, DateTimeZone}
+
+import scala.util.Random.nextString
+
+trait TestDataGenerator {
+  val USER      = "user"
+  val ORG       = "org-user"
+  val CONTEXT   = "context"
+  val SESSION   = "session"
+  val DEVERSITY = "deversity"
+  val DIAG      = "diag"
+  val HUB       = "hub"
+  val FEED_ITEM = "feed-item"
+
+  val uuid = UUID.randomUUID()
+
+  val now = DateTime.now(DateTimeZone.UTC)
+
+  val createTestUserName: String = nextString(10)
+
+  val createTestEmail: String = s"${nextString(3)}@${nextString(5)}.com"
+
+  def generateTestSystemId(prefix: String): String = s"$prefix-$uuid"
 }

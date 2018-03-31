@@ -2,4 +2,4 @@
 # This file defines all application app.routes (Higher priority app.routes first)
 # ~~~~
 GET         /login/user                             controllers.LoginController.login(enc : String)
-GET         /get-context/:contextId                 controllers.LoginController.getContext(contextId : String)
+GET         /get-current-user/:contextId            controllers.LoginController.getContext(contextId : String)
