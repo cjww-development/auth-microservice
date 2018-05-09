@@ -17,7 +17,7 @@
 package helpers.controllers
 
 import com.cjwwdev.http.headers.HeaderPackage
-import com.cjwwdev.implicits.ImplicitHandlers
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import helpers.other.FutureAsserts
 import helpers.services._
 import org.scalatestplus.play.PlaySpec
@@ -35,8 +35,7 @@ trait ControllerSpec
     with ResultExtractors
     with Writeables
     with EssentialActionCaller
-    with RouteInvokers
-    with ImplicitHandlers {
+    with RouteInvokers {
 
   val testSessionId = generateTestSystemId(SESSION)
   val testOrgId     = generateTestSystemId(ORG)

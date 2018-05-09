@@ -17,12 +17,11 @@
 package utils
 
 import com.cjwwdev.auth.models.CurrentUser
-import com.cjwwdev.implicits.ImplicitHandlers
 import models.{OrgAccount, UserAccount}
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-trait Fixtures extends TestDataGenerator with ImplicitHandlers {
+trait Fixtures extends TestDataGenerator {
 
   val testAccount = UserAccount(
     userId            = generateTestSystemId(USER),

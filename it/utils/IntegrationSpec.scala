@@ -18,6 +18,7 @@ package utils
 
 import akka.util.Timeout
 import com.cjwwdev.http.headers.HeaderPackage
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.testing.integration.IntegrationTestSpec
 import com.cjwwdev.testing.integration.application.IntegrationApplication
 import com.cjwwdev.testing.integration.wiremock.WireMockSetup
@@ -34,7 +35,7 @@ trait IntegrationSpec
 
   override implicit def defaultAwaitTimeout: Timeout = 5.seconds
 
-  val testContextId   = s"""{"contextId" : "${generateTestSystemId(CONTEXT)}"}"""
+  val testContextId   = generateTestSystemId(CONTEXT)
   val testOrgId       = generateTestSystemId(ORG)
   val testUserId      = generateTestSystemId(USER)
   val testDeversityId = generateTestSystemId(DEVERSITY)
