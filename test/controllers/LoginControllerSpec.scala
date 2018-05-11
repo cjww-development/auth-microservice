@@ -16,15 +16,14 @@
 package controllers
 
 import com.cjwwdev.auth.models.CurrentUser
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.implicits.ImplicitJsValues._
 import helpers.controllers.ControllerSpec
-import models.Login
-import play.api.libs.json.JsSuccess
 import play.api.test.FakeRequest
 
 class LoginControllerSpec extends ControllerSpec {
 
-  val encTestCredentials = DataSecurity.encryptType[Login](testCredentials)
+  val encTestCredentials = testCredentials.encryptType
 
   class Setup {
     val testController = new LoginController {
@@ -38,9 +37,8 @@ class LoginControllerSpec extends ControllerSpec {
         mockLogin(loggedIn = true)
 
         runActionWithoutAuth(testController.login(encTestCredentials), standardRequest) { res =>
-          status(res)           mustBe OK
-          contentAsString(res)  mustBe testCurrentUser.encryptType
-          DataSecurity.decryptIntoType[CurrentUser](contentAsString(res)) mustBe JsSuccess(testCurrentUser)
+          status(res)                                                         mustBe OK
+          contentAsJson(res).get[String]("body").decryptIntoType[CurrentUser] mustBe testCurrentUser
         }
       }
     }
@@ -72,7 +70,7 @@ class LoginControllerSpec extends ControllerSpec {
     "return an OK" in new Setup {
       mockGetContext(fetched = true)
 
-      runActionWithoutAuth(testController.getContext(generateTestSystemId(CONTEXT)), standardRequest) {
+      runActionWithoutAuth(testController.getCurrentUser(generateTestSystemId(CONTEXT)), standardRequest) {
         status(_) mustBe OK
       }
     }
@@ -80,13 +78,13 @@ class LoginControllerSpec extends ControllerSpec {
     "return a NOT_FOUND" in new Setup {
       mockGetContext(fetched = false)
 
-      runActionWithoutAuth(testController.getContext(generateTestSystemId(CONTEXT)), standardRequest) {
+      runActionWithoutAuth(testController.getCurrentUser(generateTestSystemId(CONTEXT)), standardRequest) {
         status(_) mustBe NOT_FOUND
       }
     }
 
     "return a FORBIDDEN" in new Setup {
-      runActionWithoutAuth(testController.getContext(generateTestSystemId(CONTEXT)), FakeRequest()) {
+      runActionWithoutAuth(testController.getCurrentUser(generateTestSystemId(CONTEXT)), FakeRequest()) {
         status(_) mustBe FORBIDDEN
       }
     }

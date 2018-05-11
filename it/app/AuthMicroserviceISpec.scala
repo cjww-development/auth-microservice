@@ -15,6 +15,7 @@
  */
 package app
 
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import models.Login
 import utils.{IntegrationSpec, IntegrationStubbing}
 

@@ -16,6 +16,7 @@
 package controllers
 
 import com.google.inject.Inject
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
 import models.Login
 import play.api.mvc.{Action, AnyContent}
@@ -31,20 +32,31 @@ trait LoginController extends BackendController {
   def login(enc: String) : Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
       withEncryptedUrlIntoType[Login](enc, Login.standardFormat) { creds =>
-        loginService.login(creds) map {
-          case Some(context)  => Ok(context.encryptType)
-          case None           => Forbidden
+        loginService.login(creds) map { context =>
+          val (status, body) = context.fold((FORBIDDEN, "User could not be authenticated"))(context => (OK, context.encryptType))
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK        => Ok(json)
+              case FORBIDDEN => Forbidden(json)
+            }
+          }
         }
       }
     }
   }
 
-  def getContext(contextId: String) : Action[AnyContent] = Action.async { implicit request =>
+  def getCurrentUser(contextId: String) : Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
       validateAs(CONTEXT, contextId) {
-        loginService.getContext(contextId) map {
-          case Some(context)  => Ok(context.encryptType)
-          case None           => NotFound
+        loginService.getContext(contextId) map { context =>
+          val (status, body) = context.fold((NOT_FOUND, "No current user found"))(context => (OK, context.encryptType))
+
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK        => Ok(json)
+              case NOT_FOUND => NotFound(json)
+            }
+          }
         }
       }
     }

@@ -33,8 +33,7 @@ object Enrolments {
   )(Enrolments.apply, unlift(Enrolments.unapply))
 }
 
-case class DeversityEnrolment(statusConfirmed: String,
-                              schoolName: String,
+case class DeversityEnrolment(schoolDevId: String,
                               role: String,
                               title: Option[String],
                               room: Option[String],
@@ -42,8 +41,7 @@ case class DeversityEnrolment(statusConfirmed: String,
 
 object DeversityEnrolment {
   implicit val standardFormat: OFormat[DeversityEnrolment] = (
-    (__ \ "statusConfirmed").format[String] and
-    (__ \ "schoolName").format[String] and
+    (__ \ "schoolDevId").format[String] and
     (__ \ "role").format[String] and
     (__ \ "title").formatNullable[String] and
     (__ \ "room").formatNullable[String] and

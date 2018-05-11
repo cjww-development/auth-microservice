@@ -35,7 +35,7 @@ class ServiceBindings extends AbstractModule {
     bind(classOf[ContextRepository]).to(classOf[ContextRepositoryImpl]).asEagerSingleton()
     bind(classOf[LoginRepository]).to(classOf[LoginRepositoryImpl]).asEagerSingleton()
     bind(classOf[OrgLoginRepository]).to(classOf[OrgLoginRepositoryImpl]).asEagerSingleton()
-    bind(classOf[RepositoryIndexer]).to(classOf[RepositoryIndexerImpl]).asEagerSingleton()
+    bind(classOf[RepositoryIndexer]).to(classOf[AuthIndexer]).asEagerSingleton()
   }
 
   private def bindServices(): Unit = {
