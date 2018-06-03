@@ -15,16 +15,17 @@
  */
 package controllers
 
-import com.google.inject.Inject
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
+import javax.inject.Inject
 import models.Login
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.LoginService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class LoginControllerImpl @Inject()(val loginService : LoginService) extends LoginController
+class DefaultLoginController @Inject()(val loginService: LoginService,
+                                       val controllerComponents: ControllerComponents) extends LoginController
 
 trait LoginController extends BackendController {
   val loginService: LoginService
