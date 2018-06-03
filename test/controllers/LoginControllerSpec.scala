@@ -20,6 +20,7 @@ import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.implicits.ImplicitJsValues._
 import helpers.controllers.ControllerSpec
 import play.api.test.FakeRequest
+import play.api.test.Helpers.stubControllerComponents
 
 class LoginControllerSpec extends ControllerSpec {
 
@@ -27,7 +28,8 @@ class LoginControllerSpec extends ControllerSpec {
 
   class Setup {
     val testController = new LoginController {
-      override val loginService = mockLoginService
+      override protected def controllerComponents = stubControllerComponents()
+      override val loginService                   = mockLoginService
     }
   }
 

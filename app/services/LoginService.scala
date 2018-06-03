@@ -17,8 +17,8 @@ package services
 
 import com.cjwwdev.auth.models.CurrentUser
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import com.google.inject.Inject
 import common.CurrentUserNotFoundException
+import javax.inject.Inject
 import models.{Login, OrgAccount, UserAccount}
 import play.api.libs.json.{JsObject, Json}
 import repositories._
@@ -26,9 +26,9 @@ import repositories._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class LoginServiceImpl @Inject()(val loginRepository: LoginRepository,
-                                 val orgLoginRepository: OrgLoginRepository,
-                                 val contextRepository: ContextRepository) extends LoginService
+class DefaultLoginService @Inject()(val loginRepository: LoginRepository,
+                                    val orgLoginRepository: OrgLoginRepository,
+                                    val contextRepository: ContextRepository) extends LoginService
 
 trait LoginService extends IdService {
   val loginRepository: LoginRepository

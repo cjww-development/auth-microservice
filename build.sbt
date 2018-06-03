@@ -40,14 +40,14 @@ lazy val microservice = Project(appName, file("."))
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
     version                                       :=  btVersion,
-    scalaVersion                                  :=  "2.11.12",
+    scalaVersion                                  :=  "2.12.6",
     organization                                  :=  "com.cjww-dev.backends",
     resolvers                                     ++= Seq(
       "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
       "cjww-dev"       at "http://dl.bintray.com/cjww-development/releases"
     ),
     libraryDependencies                           ++= AppDependencies(),
-    herokuAppName              in Compile         :=  "cjww-auth-microservice",
+    //herokuAppName              in Compile         :=  "cjww-auth-microservice",
     bintrayOrganization                           :=  Some("cjww-development"),
     bintrayReleaseOnPublish    in ThisBuild       :=  false,
     bintrayRepository                             :=  "releases",

@@ -17,7 +17,6 @@ package services
 
 import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
-import play.api.libs.json.Json
 
 class LoginServiceSpec extends ServiceSpec {
   class Setup {

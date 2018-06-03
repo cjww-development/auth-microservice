@@ -16,37 +16,37 @@
 
 package common
 
-import com.cjwwdev.config.{ConfigurationLoader, ConfigurationLoaderImpl}
+import com.cjwwdev.config.{ConfigurationLoader, DefaultConfigurationLoader}
+import com.cjwwdev.health.{DefaultHealthController, HealthController}
 import com.cjwwdev.mongo.indexes.RepositoryIndexer
-import com.google.inject.AbstractModule
+import controllers._
+import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
 import repositories._
 import services._
-import controllers._
 
-class ServiceBindings extends AbstractModule {
-  override def configure(): Unit = {
-    bindOther()
-    bindRepositories()
-    bindServices()
-    bindControllers()
-  }
+class ServiceBindings extends Module {
 
-  private def bindRepositories(): Unit = {
-    bind(classOf[ContextRepository]).to(classOf[ContextRepositoryImpl]).asEagerSingleton()
-    bind(classOf[LoginRepository]).to(classOf[LoginRepositoryImpl]).asEagerSingleton()
-    bind(classOf[OrgLoginRepository]).to(classOf[OrgLoginRepositoryImpl]).asEagerSingleton()
-    bind(classOf[RepositoryIndexer]).to(classOf[AuthIndexer]).asEagerSingleton()
-  }
+  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] =
+    bindOther() ++ bindRepositories() ++ bindServices() ++ bindControllers()
 
-  private def bindServices(): Unit = {
-    bind(classOf[LoginService]).to(classOf[LoginServiceImpl]).asEagerSingleton()
-  }
+  private def bindRepositories(): Seq[Binding[_]] = Seq(
+    bind(classOf[ContextRepository]).to(classOf[DefaultContextRepository]).eagerly(),
+    bind(classOf[LoginRepository]).to(classOf[DefaultLoginRepository]).eagerly(),
+    bind(classOf[OrgLoginRepository]).to(classOf[DefaultOrgLoginRepository]).eagerly(),
+    bind(classOf[RepositoryIndexer]).to(classOf[AuthIndexer]).eagerly()
+  )
 
-  private def bindControllers(): Unit = {
-    bind(classOf[LoginController]).to(classOf[LoginControllerImpl]).asEagerSingleton()
-  }
+  private def bindServices(): Seq[Binding[_]] = Seq(
+    bind(classOf[LoginService]).to(classOf[DefaultLoginService]).eagerly()
+  )
 
-  private def bindOther(): Unit = {
-    bind(classOf[ConfigurationLoader]).to(classOf[ConfigurationLoaderImpl]).asEagerSingleton()
-  }
+  private def bindControllers(): Seq[Binding[_]] = Seq(
+    bind(classOf[LoginController]).to(classOf[DefaultLoginController]).eagerly(),
+    bind(classOf[HealthController]).to(classOf[DefaultHealthController]).eagerly()
+  )
+
+  private def bindOther(): Seq[Binding[_]] = Seq(
+    bind(classOf[ConfigurationLoader]).to(classOf[DefaultConfigurationLoader]).eagerly()
+  )
 }

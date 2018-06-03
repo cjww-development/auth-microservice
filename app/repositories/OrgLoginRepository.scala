@@ -16,9 +16,9 @@
 
 package repositories
 
-import javax.inject.Inject
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
+import javax.inject.Inject
 import models.{Login, OrgAccount}
 import play.api.Configuration
 import reactivemongo.bson.BSONDocument
@@ -27,7 +27,7 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class OrgLoginRepositoryImpl @Inject()(val config: Configuration) extends OrgLoginRepository with ConnectionSettings
+class DefaultOrgLoginRepository @Inject()(val config: Configuration) extends OrgLoginRepository with ConnectionSettings
 
 trait OrgLoginRepository extends DatabaseRepository {
   private def query(userDetails: Login): BSONDocument = BSONDocument("orgUserName" -> userDetails.username, "password" -> userDetails.password)

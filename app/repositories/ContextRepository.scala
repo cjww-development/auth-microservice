@@ -30,7 +30,7 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ContextRepositoryImpl @Inject()(val config: Configuration) extends ContextRepository with ConnectionSettings
+class DefaultContextRepository @Inject()(val config: Configuration) extends ContextRepository with ConnectionSettings
 
 trait ContextRepository extends DatabaseRepository with Logging {
   override def indexes: Seq[Index] = Seq(

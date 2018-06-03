@@ -20,11 +20,15 @@ import com.cjwwdev.auth.backend.BaseAuth
 import com.cjwwdev.identifiers.IdentifierValidation
 import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.responses.ApiResponse
-import play.api.mvc.Controller
+import play.api.mvc.{ActionBuilder, AnyContent, BaseController, Request}
 
 trait BackendController
-  extends Controller
+  extends BaseController
     with RequestParsers
     with BaseAuth
     with IdentifierValidation
-    with ApiResponse
+    with ApiResponse {
+
+  protected val action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
+
+}
