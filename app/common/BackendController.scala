@@ -18,17 +18,32 @@ package common
 
 import com.cjwwdev.auth.backend.BaseAuth
 import com.cjwwdev.identifiers.IdentifierValidation
-import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.responses.ApiResponse
-import play.api.mvc.{ActionBuilder, AnyContent, BaseController, Request}
+import com.cjwwdev.security.deobfuscation.DeObfuscator
+import play.api.libs.json.Json
+import play.api.mvc._
+
+import scala.concurrent.Future
+import scala.util.Try
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait BackendController
   extends BaseController
-    with RequestParsers
     with BaseAuth
     with IdentifierValidation
     with ApiResponse {
 
-  protected val action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
-
+  def withEncryptedUrl[T](enc: String)(f: T => Future[Result])(implicit request: Request[_], deObfuscation: DeObfuscator[T]): Future[Result] = {
+    deObfuscation.decrypt(enc).fold(
+      data => f(data),
+      err  => Try(Json.parse(err.message)).fold(
+        _ => withFutureJsonResponseBody(BAD_REQUEST, s"Couldn't decrypt request body on ${request.path}") { json =>
+          Future(BadRequest(json))
+        },
+        jsError => withFutureJsonResponseBody(BAD_REQUEST, jsError, "Decrypted json was missing a field") { json =>
+          Future(BadRequest(json))
+        }
+      )
+    )
+  }
 }

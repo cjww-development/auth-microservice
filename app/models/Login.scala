@@ -15,6 +15,7 @@
  */
 package models
 
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -25,4 +26,8 @@ object Login {
     (__ \ "username").format[String] and
     (__ \ "password").format[String]
   )(Login.apply, unlift(Login.unapply))
+
+  implicit val deObfuscator: DeObfuscator[Login] = new DeObfuscator[Login] {
+    override def decrypt(value: String): Either[Login, DecryptionError] = DeObfuscation.deObfuscate[Login](value)
+  }
 }

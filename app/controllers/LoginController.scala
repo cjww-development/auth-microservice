@@ -15,6 +15,7 @@
  */
 package controllers
 
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
 import javax.inject.Inject
@@ -25,16 +26,19 @@ import services.LoginService
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultLoginController @Inject()(val loginService: LoginService,
-                                       val controllerComponents: ControllerComponents) extends LoginController
+                                       val config: ConfigurationLoader,
+                                       val controllerComponents: ControllerComponents) extends LoginController {
+  override val appId: String = config.getServiceId(config.get[String]("appName"))
+}
 
 trait LoginController extends BackendController {
   val loginService: LoginService
 
   def login(enc: String) : Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
-      withEncryptedUrlIntoType[Login](enc, Login.standardFormat) { creds =>
+      withEncryptedUrl[Login](enc) { creds =>
         loginService.login(creds) map { context =>
-          val (status, body) = context.fold((FORBIDDEN, "User could not be authenticated"))(context => (OK, context.encryptType))
+          val (status, body) = context.fold((FORBIDDEN, "User could not be authenticated"))(ctx => (OK, ctx.encrypt))
           withJsonResponseBody(status, body) { json =>
             status match {
               case OK        => Ok(json)
@@ -50,7 +54,7 @@ trait LoginController extends BackendController {
     applicationVerification {
       validateAs(CONTEXT, contextId) {
         loginService.getContext(contextId) map { context =>
-          val (status, body) = context.fold((NOT_FOUND, "No current user found"))(context => (OK, context.encryptType))
+          val (status, body) = context.fold((NOT_FOUND, "No current user found"))(context => (OK, context.encrypt))
 
           withJsonResponseBody(status, body) { json =>
             status match {

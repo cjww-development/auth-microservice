@@ -18,18 +18,26 @@ package controllers
 import com.cjwwdev.auth.models.CurrentUser
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.implicits.ImplicitJsValues._
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import helpers.controllers.ControllerSpec
+import models.Login
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
 
 class LoginControllerSpec extends ControllerSpec {
 
-  val encTestCredentials = testCredentials.encryptType
+  implicit val loginObfuscator: Obfuscator[Login] = new Obfuscator[Login] {
+    override def encrypt(value: Login): String = Obfuscation.obfuscateJson(Json.toJson(value))
+  }
+
+  val encTestCredentials = testCredentials.encrypt
 
   class Setup {
     val testController = new LoginController {
       override protected def controllerComponents = stubControllerComponents()
       override val loginService                   = mockLoginService
+      override val appId                          = "testAppId"
     }
   }
 
@@ -39,8 +47,8 @@ class LoginControllerSpec extends ControllerSpec {
         mockLogin(loggedIn = true)
 
         runActionWithoutAuth(testController.login(encTestCredentials), standardRequest) { res =>
-          status(res)                                                         mustBe OK
-          contentAsJson(res).get[String]("body").decryptIntoType[CurrentUser] mustBe testCurrentUser
+          status(res)                                                 mustBe OK
+          contentAsJson(res).get[String]("body").decrypt[CurrentUser] mustBe Left(testCurrentUser)
         }
       }
     }

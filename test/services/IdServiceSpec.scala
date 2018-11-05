@@ -37,11 +37,11 @@ class IdServiceSpec extends PlaySpec {
       assert(resultFour.contains("hub"))
       assert(resultFive.contains("hub"))
 
-      resultOne.length mustBe 40
-      resultTwo.length mustBe 40
+      resultOne.length   mustBe 40
+      resultTwo.length   mustBe 40
       resultThree.length mustBe 40
-      resultFour.length mustBe 40
-      resultFive.length mustBe 40
+      resultFour.length  mustBe 40
+      resultFive.length  mustBe 40
     }
   }
 
@@ -59,11 +59,11 @@ class IdServiceSpec extends PlaySpec {
       assert(resultFour.contains("diag"))
       assert(resultFive.contains("diag"))
 
-      resultOne.length mustBe 41
-      resultTwo.length mustBe 41
+      resultOne.length   mustBe 41
+      resultTwo.length   mustBe 41
       resultThree.length mustBe 41
-      resultFour.length mustBe 41
-      resultFive.length mustBe 41
+      resultFour.length  mustBe 41
+      resultFive.length  mustBe 41
     }
   }
 
@@ -81,11 +81,11 @@ class IdServiceSpec extends PlaySpec {
       assert(resultFour.contains("deversity"))
       assert(resultFive.contains("deversity"))
 
-      resultOne.length mustBe 46
-      resultTwo.length mustBe 46
+      resultOne.length   mustBe 46
+      resultTwo.length   mustBe 46
       resultThree.length mustBe 46
-      resultFour.length mustBe 46
-      resultFive.length mustBe 46
+      resultFour.length  mustBe 46
+      resultFive.length  mustBe 46
     }
   }
 }
