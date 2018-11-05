@@ -1,3 +1,4 @@
 #Primary entry point for the auth microservice
 ->          /auth          app.Routes
 ->          /              health.Routes
+->          /private       shuttering.Routes

@@ -16,13 +16,19 @@
 package app
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.Login
+import play.api.libs.json.Json
 import utils.{IntegrationSpec, IntegrationStubbing}
 
 class AuthMicroserviceISpec extends IntegrationSpec with IntegrationStubbing {
 
+  implicit val obfuscator: Obfuscator[Login] = new Obfuscator[Login] {
+    override def encrypt(value: Login): String = Obfuscation.obfuscateJson(Json.toJson(value))
+  }
+
   "/auth/login/user (individual)" should {
-    val enc = Login("testUserName", "testPassword").encryptType
+    val enc = Login("testUserName", "testPassword").encrypt
     "return an OK" when {
       "the user has been successfully validated" in {
         given
@@ -36,7 +42,7 @@ class AuthMicroserviceISpec extends IntegrationSpec with IntegrationStubbing {
 
     "return a FORBIDDEN" when {
       "the user has not been successfully validated" in {
-        val enc = Login("testUserName", "testInvalidPass").encryptType
+        val enc = Login("testUserName", "testInvalidPass").encrypt
         awaitAndAssert(client(s"$testAppUrl/login/user?enc=$enc").get()) {
           _.status mustBe FORBIDDEN
         }
@@ -51,7 +57,7 @@ class AuthMicroserviceISpec extends IntegrationSpec with IntegrationStubbing {
   }
 
   "/auth/login/user (organisation)" should {
-    val enc = Login("testOrgUserName", "testPass").encryptType
+    val enc = Login("testOrgUserName", "testPass").encrypt
     "return an OK" when {
       "the user has been successfully validated" in {
         given
