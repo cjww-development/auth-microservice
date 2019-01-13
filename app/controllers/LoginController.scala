@@ -23,18 +23,19 @@ import models.Login
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.LoginService
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class DefaultLoginController @Inject()(val loginService: LoginService,
                                        val config: ConfigurationLoader,
-                                       val controllerComponents: ControllerComponents) extends LoginController {
+                                       val controllerComponents: ControllerComponents,
+                                       implicit val ec: ExecutionContext) extends LoginController {
   override val appId: String = config.getServiceId(config.get[String]("appName"))
 }
 
 trait LoginController extends BackendController {
   val loginService: LoginService
 
-  def login(enc: String) : Action[AnyContent] = Action.async { implicit request =>
+  def login(enc: String): Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
       withEncryptedUrl[Login](enc) { creds =>
         loginService.login(creds) map { context =>
@@ -50,7 +51,7 @@ trait LoginController extends BackendController {
     }
   }
 
-  def getCurrentUser(contextId: String) : Action[AnyContent] = Action.async { implicit request =>
+  def getCurrentUser(contextId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
       validateAs(CONTEXT, contextId) {
         loginService.getContext(contextId) map { context =>

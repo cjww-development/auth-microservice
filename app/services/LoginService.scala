@@ -23,8 +23,7 @@ import models.{Login, OrgAccount, UserAccount}
 import play.api.libs.json.{JsObject, Json}
 import repositories._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext => ExC, Future}
 
 class DefaultLoginService @Inject()(val loginRepository: LoginRepository,
                                     val orgLoginRepository: OrgLoginRepository,
@@ -38,7 +37,7 @@ trait LoginService extends IdService {
   private val INDIVIDUAL   = "individual"
   private val ORGANISATION = "organisation"
 
-  def login(credentials : Login) : Future[Option[CurrentUser]] = {
+  def login(credentials: Login)(implicit ec: ExC): Future[Option[CurrentUser]] = {
     loginRepository.validateIndividualUser(credentials) flatMap {
       case Some(acc)  => processUserAuthContext(acc)
       case None       => orgLoginRepository.validateOrganisationUser(credentials) flatMap {
@@ -48,7 +47,7 @@ trait LoginService extends IdService {
     }
   }
 
-  def getContext(id : String) : Future[Option[CurrentUser]] = {
+  def getContext(id: String)(implicit exC: ExC): Future[Option[CurrentUser]] = {
     contextRepository.fetchCurrentUser(id) map {
       Some(_)
     } recover {
@@ -56,7 +55,7 @@ trait LoginService extends IdService {
     }
   }
 
-  private[services] def processUserAuthContext(acc : UserAccount) : Future[Option[CurrentUser]] = {
+  private[services] def processUserAuthContext(acc: UserAccount)(implicit exC: ExC): Future[Option[CurrentUser]] = {
     val generatedAuthContext = generateUserAuthContext(acc)
     contextRepository.cacheCurrentUser(generatedAuthContext) map {
       case MongoSuccessCreate => Some(generatedAuthContext)
@@ -64,7 +63,7 @@ trait LoginService extends IdService {
     }
   }
 
-  private[services] def processOrgAuthContext(acc: OrgAccount): Future[Option[CurrentUser]] = {
+  private[services] def processOrgAuthContext(acc: OrgAccount)(implicit exC: ExC): Future[Option[CurrentUser]] = {
     val generatedAuthContext = generateOrgAuthContext(acc)
     contextRepository.cacheCurrentUser(generatedAuthContext) map {
       case MongoSuccessCreate => Some(generatedAuthContext)

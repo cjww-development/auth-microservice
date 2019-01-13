@@ -27,8 +27,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext => ExC, Future}
 
 class DefaultContextRepository @Inject()(val config: Configuration) extends ContextRepository with ConnectionSettings
 
@@ -44,7 +43,7 @@ trait ContextRepository extends DatabaseRepository with Logging {
 
   private val contextIdSelector: String => BSONDocument = contextId => BSONDocument("contextId" -> contextId)
 
-  def cacheCurrentUser(context: CurrentUser) : Future[MongoCreateResponse] = {
+  def cacheCurrentUser(context: CurrentUser)(implicit exC: ExC): Future[MongoCreateResponse] = {
     for {
       col <- collection
       wr  <- col.insert[CurrentUser](context)
@@ -57,7 +56,7 @@ trait ContextRepository extends DatabaseRepository with Logging {
     }
   }
 
-  def fetchCurrentUser(contextId : String) : Future[CurrentUser] = {
+  def fetchCurrentUser(contextId: String)(implicit exC: ExC): Future[CurrentUser] = {
     for {
       col <- collection
       res <- col.find(contextIdSelector(contextId)).one[CurrentUser]

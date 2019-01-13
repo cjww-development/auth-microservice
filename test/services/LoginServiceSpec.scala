@@ -18,6 +18,8 @@ package services
 import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class LoginServiceSpec extends ServiceSpec {
   class Setup {
     val testService = new LoginService {

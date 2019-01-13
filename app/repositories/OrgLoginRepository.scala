@@ -24,15 +24,14 @@ import play.api.Configuration
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext => ExC, Future}
 
 class DefaultOrgLoginRepository @Inject()(val config: Configuration) extends OrgLoginRepository with ConnectionSettings
 
 trait OrgLoginRepository extends DatabaseRepository {
   private def query(userDetails: Login): BSONDocument = BSONDocument("orgUserName" -> userDetails.username, "password" -> userDetails.password)
 
-  def validateOrganisationUser(userDetails: Login): Future[Option[OrgAccount]] = {
+  def validateOrganisationUser(userDetails: Login)(implicit ec: ExC): Future[Option[OrgAccount]] = {
     for {
       col <- collection
       acc <- col.find(query(userDetails)).one[OrgAccount]

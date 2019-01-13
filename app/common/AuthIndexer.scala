@@ -20,9 +20,12 @@ import com.cjwwdev.mongo.indexes.RepositoryIndexer
 import javax.inject.Inject
 import repositories.{ContextRepository, LoginRepository, OrgLoginRepository}
 
-class AuthIndexer @Inject()(contextRepository: ContextRepository,
-                            loginRepository: LoginRepository,
-                            orgLoginRepository: OrgLoginRepository) extends RepositoryIndexer {
+import scala.concurrent.ExecutionContext
+
+class AuthIndexer @Inject()(val contextRepository: ContextRepository,
+                            val loginRepository: LoginRepository,
+                            val orgLoginRepository: OrgLoginRepository,
+                            implicit val ec: ExecutionContext) extends RepositoryIndexer {
   override val repositories = Seq(
     contextRepository,
     loginRepository,

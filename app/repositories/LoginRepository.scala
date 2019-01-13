@@ -23,15 +23,14 @@ import play.api.Configuration
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext => ExC, Future}
 
 class DefaultLoginRepository @Inject()(val config: Configuration) extends LoginRepository with ConnectionSettings
 
 trait LoginRepository extends DatabaseRepository {
   private def query(userDetails: Login): BSONDocument = BSONDocument("userName" -> userDetails.username, "password" -> userDetails.password)
 
-  def validateIndividualUser(userdetails : Login) : Future[Option[UserAccount]] = {
+  def validateIndividualUser(userdetails: Login)(implicit exC: ExC): Future[Option[UserAccount]] = {
     for {
       col <- collection
       acc <- col.find(query(userdetails)).one[UserAccount]

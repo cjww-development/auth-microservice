@@ -28,7 +28,6 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.ContextRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait MockContextRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures {
@@ -42,12 +41,12 @@ trait MockContextRepository extends BeforeAndAfterEach with MockitoSugar with Fi
   }
 
   def mockCacheCurrentUser(cached: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
-    when(mockContextRepository.cacheCurrentUser(ArgumentMatchers.any()))
-      .thenReturn(Future(if(cached) MongoSuccessCreate else MongoFailedCreate))
+    when(mockContextRepository.cacheCurrentUser(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(cached) MongoSuccessCreate else MongoFailedCreate))
   }
 
   def mockFetchCurrentUser(fetched: Boolean): OngoingStubbing[Future[CurrentUser]] = {
-    when(mockContextRepository.fetchCurrentUser(ArgumentMatchers.any()))
-      .thenReturn(if(fetched) Future(testCurrentUser) else Future.failed(new CurrentUserNotFoundException("")))
+    when(mockContextRepository.fetchCurrentUser(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(fetched) Future.successful(testCurrentUser) else Future.failed(new CurrentUserNotFoundException("")))
   }
 }
