@@ -25,6 +25,9 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits
+
 class LoginControllerSpec extends ControllerSpec {
 
   implicit val loginObfuscator: Obfuscator[Login] = new Obfuscator[Login] {
@@ -35,6 +38,7 @@ class LoginControllerSpec extends ControllerSpec {
 
   class Setup {
     val testController = new LoginController {
+      override implicit val ec: ExecutionContext  = Implicits.global
       override protected def controllerComponents = stubControllerComponents()
       override val loginService                   = mockLoginService
       override val appId                          = "testAppId"

@@ -26,7 +26,6 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import services.LoginService
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait MockLoginService extends BeforeAndAfterEach with MockitoSugar with Fixtures {
@@ -40,12 +39,12 @@ trait MockLoginService extends BeforeAndAfterEach with MockitoSugar with Fixture
   }
 
   def mockLogin(loggedIn: Boolean): OngoingStubbing[Future[Option[CurrentUser]]] = {
-    when(mockLoginService.login(ArgumentMatchers.any()))
-      .thenReturn(Future(if(loggedIn) Some(testCurrentUser) else None))
+    when(mockLoginService.login(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(loggedIn) Some(testCurrentUser) else None))
   }
 
   def mockGetContext(fetched: Boolean): OngoingStubbing[Future[Option[CurrentUser]]] = {
-    when(mockLoginService.getContext(ArgumentMatchers.any()))
-      .thenReturn(Future(if(fetched) Some(testCurrentUser) else None))
+    when(mockLoginService.getContext(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(fetched) Some(testCurrentUser) else None))
   }
 }

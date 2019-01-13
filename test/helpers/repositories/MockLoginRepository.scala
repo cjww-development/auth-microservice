@@ -26,7 +26,6 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.LoginRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait MockLoginRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures {
@@ -40,7 +39,7 @@ trait MockLoginRepository extends BeforeAndAfterEach with MockitoSugar with Fixt
   }
 
   def mockValidateIndividualUser(validated: Boolean): OngoingStubbing[Future[Option[UserAccount]]] = {
-    when(mockLoginRepository.validateIndividualUser(ArgumentMatchers.any()))
-      .thenReturn(Future(if(validated) Some(testUserAccount(AccountEnums.teacher)) else None))
+    when(mockLoginRepository.validateIndividualUser(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(validated) Some(testUserAccount(AccountEnums.teacher)) else None))
   }
 }

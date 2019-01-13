@@ -26,7 +26,6 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.OrgLoginRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait MockOrgLoginRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures {
@@ -40,7 +39,7 @@ trait MockOrgLoginRepository extends BeforeAndAfterEach with MockitoSugar with F
   }
 
   def mockValidateOrganisationUser(validated: Boolean): OngoingStubbing[Future[Option[OrgAccount]]] = {
-    when(mockOrgLoginRepository.validateOrganisationUser(ArgumentMatchers.any()))
-      .thenReturn(Future(if(validated) Some(testOrgAccount) else None))
+    when(mockOrgLoginRepository.validateOrganisationUser(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(validated) Some(testOrgAccount) else None))
   }
 }
